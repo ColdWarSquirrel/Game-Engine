@@ -25,7 +25,7 @@ interface GameScreenOptions{
     backgroundColour?:string
 }
 class GameScreen{
-    documentObject:any;
+    documentObject:HTMLCanvasElement|any;
     background:string;
     ctx:CanvasRenderingContext2D;
     mousePos:Vector;
@@ -37,17 +37,11 @@ class GameScreen{
         this.width = viewport.width;
         this.height = viewport.height;
         this.background = "white";
-        if(!('canvas' in options)){
-            this.documentObject = document.createElement("canvas");
-            document.body.insertBefore(this.documentObject, document.body.firstChild);
-        }else{
-            if(typeof options.canvas == 'string'){this.documentObject = document.querySelector(`#${options.canvas}`)}
-            else if(typeof options.canvas == 'object'){this.documentObject = options.canvas};
-        }
+        this.documentObject = document.querySelector('canvas');
         if('width' in options)this.width = options.width!;
         if('height' in options)this.height = options.height!;
         if('backgroundColour' in options)this.background = options.backgroundColour!;
-        this.ctx = this.documentObject.getContext("2d");
+        this.ctx = <CanvasRenderingContext2D>this.documentObject.getContext("2d");
         this.resize(this.width,this.height,true);
 
         // just a basic default mouse position before the user moves their mouse
@@ -56,10 +50,10 @@ class GameScreen{
             y:this.height/2
         }
         document.addEventListener("mousemove", (e)=>{
-            var rect = this.documentObject.getBoundingClientRect();
+            var rect = this.documentObject!.getBoundingClientRect();
             this.mousePos = {
-                x:e.clientX,
-                y:e.clientY
+                x:e.clientX-rect.left,
+                y:e.clientY-rect.top
             }
         });
 
@@ -478,24 +472,40 @@ class Sprite{
                     this.fullyLoaded = false;
                     for(let i = 0; i < options.info.skins.length; i++){
                         let skin = options.info.skins[i];
+                        let w = options?.scale?.width ?? "default";
+                        let h = options?.scale?.height ?? "default";
+                        console.log(this.name,w,h);
                         this.skins.push(new Skin({
                             name:skin.name,
-                            url:skin.url
-                        }));
+                            url:skin.url,
+                            scale:{
+                                width:w,
+                                height:h
+                            }
+                        },()=>{this.fullyLoaded = true;}));
                     }
+                    this.skin = this.skins[0].sprite;
                 }
             }
             // to prevent drawing an image before it's loaded, wouldn't do anything if it did, it's just weird
             if(this.type!=="image") {this.draw();};
         }
     }
+    switchSkin(name:string){
+        let skin = this.skins.filter((a)=>{
+            return a.name==name;
+        })[0];
+        this.skin = skin.sprite;
+        this.scale.width = skin.scale.width;
+        this.scale.height = skin.scale.height;
+    }
     draw(){
-        if(this.hidden==false){
+        if(this.hidden==false){ 
             gameScreen.ctx.save();
             gameScreen.ctx.globalAlpha = this.opacity;
             if(this.type=="image"){
                 if(this.fullyLoaded == true){
-                    gameScreen.ctx.drawImage(this.skin, this.location.x, this.location.y, <number>this.scale.width, <number>this.scale.height);
+                    gameScreen.ctx.drawImage(this.skin, this.location.x, this.location.y, <number>this.skin.width, <number>this.skin.height);
                 }
             }else if(this.type=="box"){
                 gameScreen.ctx.beginPath();
@@ -676,15 +686,17 @@ interface scale{
 interface skinParameters{
     name:string,
     url:string,
-    scale?:scale
+    scale?:{
+        width:number|string,
+        height:number|string
+    }
 }
 class Skin{
     name: string;
     url: string;
     sprite: HTMLImageElement;
     scale: { width: number; height: number; naturalWidth: number; naturalHeight: number; };
-    fullyLoaded: boolean;
-    constructor(options:skinParameters){
+    constructor(options:skinParameters,onload?:Function){
         this.name = "Example",
         this.url = "",
         this.sprite = new Image(),
@@ -694,7 +706,6 @@ class Skin{
             naturalWidth:0,
             naturalHeight:0
         }
-        this.fullyLoaded = false;
         if('url'){
             this.url = options.url;
             if('name' in options){
@@ -705,7 +716,7 @@ class Skin{
                 this.scale.naturalWidth = this.sprite.naturalWidth;
                 this.scale.naturalHeight = this.sprite.naturalHeight;
                 if('scale' in options){
-                    if('width' in <scale>options.scale){
+                    if('width' in options.scale!){
                         if(typeof options.scale!.width=="string"){
                             this.scale.width = this.sprite.naturalWidth;
                             this.sprite.width = this.sprite.naturalWidth;
@@ -714,7 +725,7 @@ class Skin{
                             this.sprite.width = options.scale!.width;
                         }
                     }
-                    if('height' in <scale>options.scale){
+                    if('height' in options.scale!){
                         if(typeof options.scale!.height=="string"){
                             this.scale.height = this.sprite.naturalHeight;
                             this.sprite.height = this.sprite.naturalHeight;
@@ -723,11 +734,14 @@ class Skin{
                             this.sprite.height = options.scale!.height;
                         }
                     }
+                    console.log(this.sprite.width);
                 }else{
                     this.sprite.width = this.sprite.naturalWidth;
                     this.sprite.height = this.sprite.naturalHeight;
                 }
-                this.fullyLoaded = true;
+                if(onload){
+                    onload();
+                }
                 return this;
             };
             this.sprite.src = this.url;

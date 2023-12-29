@@ -42,7 +42,7 @@
         <script src="../index.js"></script>
         <script>
             "use strict";
-            const screen = new GameScreen({width:viewport.width-10,height:viewport.height-10});
+            gameScreen.resize(viewport.width-10,viewport.height-10);
             const game = new Game("Jumpy Jump Autistic");
             const player = game.addSprite(new Sprite({  
                 info:{
@@ -65,8 +65,8 @@
                     }
                 },
                 location:{
-                    x:(screen.width*0.5),
-                    y:(screen.height*0.5)
+                    x:(gameScreen.width*0.5),
+                    y:(gameScreen.height*0.5)
                 },
                 scale:{
                     width:"default",
@@ -143,20 +143,20 @@
             let coins = game.addSprites(
                 new Coin({
                     location:{
-                        x:(screen.width*0.5)+100,
-                        y:(screen.height-30)-60
+                        x:(gameScreen.width*0.5)+100,
+                        y:(gameScreen.height-30)-60
                     }
                 }),
                 new Coin({
                     location:{
-                        x:(screen.width*0.5)+150,
-                        y:(screen.height-30)-60
+                        x:(gameScreen.width*0.5)+150,
+                        y:(gameScreen.height-30)-60
                     }
                 }),
                 new Coin({
                     location:{
-                        x:(screen.width*0.5)+200,
-                        y:(screen.height-30)-60
+                        x:(gameScreen.width*0.5)+200,
+                        y:(gameScreen.height-30)-60
                     }
                 })
             );
@@ -164,18 +164,18 @@
                 new Floor({
                     location:{
                         x:0,
-                        y:(screen.height-30),
+                        y:(gameScreen.height-30),
                         z:-1
                     },
                     scale:{
-                        width:screen.width,
+                        width:gameScreen.width,
                         height:40
                     }
                 }),
                 new Floor({
                     location:{
                         x:270,
-                        y:(screen.height-650),
+                        y:(gameScreen.height-650),
                         z:-1
                     },
                     scale:{
@@ -186,7 +186,7 @@
                 new Floor({
                     location:{
                         x:25,
-                        y:(screen.height-650),
+                        y:(gameScreen.height-650),
                         z:-1
                     },
                     scale:{
@@ -199,7 +199,7 @@
             let stopAt = 0.05;
             game.resortByZIndex();
             document.body.style.backgroundColor = "black";
-            screen.background = "black";
+            gameScreen.background = "black";
             let isCollidingWithTerrain = false;
             let direction = {x:0,y:0};
             let collisionSide = "";
@@ -263,11 +263,11 @@
                     collisionSide = "";
                 }
                 if(currentlyColliding.y==false){
-                    if(player.location.y+player.scale.height+((playerMovementData.fallSpeed*player.velocity.y)*delta)<screen.height){
+                    if(player.location.y+player.scale.height+((playerMovementData.fallSpeed*player.velocity.y)*delta)<gameScreen.height){
                         player.velocity.y += player.velocity.y < 1.5 ? delta : 0;
                     }else{
-                        player.location.y = screen.height/2;
-                        player.location.x = screen.width/2;
+                        player.location.y = gameScreen.height/2;
+                        player.location.x = gameScreen.width/2;
                     }
                 }
                 if(currentlyColliding.x==false&&currentlyColliding.y==false){
@@ -280,11 +280,11 @@
                     }
                 }
                 if(game.keysDown.KeyD){
-                    if(!game.keysDown.KeyA) player.sprite = player.skins[0].sprite;
+                    if(!game.keysDown.KeyA) player.switchSkin('idleRight');
                     player.velocity.x += (player.velocity.x<1) ? 10*delta : 0;
                 }
                 if(game.keysDown.KeyA){
-                    if(!game.keysDown.KeyD) player.sprite = player.skins[1].sprite;
+                    if(!game.keysDown.KeyD) player.switchSkin('idleLeft');
                     player.velocity.x += (player.velocity.x>-1) ? -10*delta : 0;
                 }
                 if(game.keysDown.KeyW){
@@ -294,12 +294,12 @@
                         player.velocity.y = -1;
                         if(collisionSide=="right"){
                             if(!game.keysDown.KeyA){
-                                player.sprite = player.skins[0].sprite;
+                                player.switchSkin('idleRight');
                             }
                             player.velocity.x+=2;
                         }else if(collisionSide=="left"){
                             if(!game.keysDown.KeyD){
-                                player.sprite = player.skins[1].sprite;
+                                player.switchSkin('idleLeft');
                             }
                             player.velocity.x-=2;
                         }

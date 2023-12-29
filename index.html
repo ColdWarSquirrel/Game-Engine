@@ -49,7 +49,7 @@
                 Win/Loss Ratio: <span id="wlratio"></span>
             </div>
         </div>
-        <script src="general.js"></script>
+        <script src="index.js"></script>
         <script>
             "use strict";
             let minScreenSize = Math.min(viewport.width,viewport.height);
@@ -69,7 +69,7 @@
                 x:(screenSize.x>700 ? 700 : screenSize.x),
                 y:(screenSize.y>700 ? 700 : screenSize.y)
             }
-            const screen = new Screen(screenSize.x,screenSize.y,"gameScreen_Main");
+            const screen = new GameScreen({width:screenSize.x,height:screenSize.y});
             const game = new Game("Pong", ()=>{
                 console.log("game started");
             });
