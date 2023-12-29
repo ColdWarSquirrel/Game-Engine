@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Jumpy Jump Autistic</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body,html{
+                margin:0;
+                text-align:center;
+            }
+            .main{
+                padding:0;
+                max-width:99vw;
+                max-height:99vh;
+                width:fit-content;
+                height:fit-content;
+                border:1px black solid;
+                position: absolute; 
+                left: 0; 
+                right: 0; 
+                margin-left: auto; 
+                margin-right: auto;
+                overflow: hidden;
+            }
+            canvas{
+                cursor: default;
+                border-bottom:1px solid black;
+            }
+            #outputlog{
+                margin-left:auto;
+                margin-right:auto;
+                display:inline-block;
+                height:200px;
+                width:100%;
+                padding-right: 17px;
+                overflow-y:scroll;
+                box-sizing: content-box;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main">
+            <canvas id="gameScreen_Main"></canvas><br>
+            <div id="outputlog">
+            </div>
+        </div>
+        <script src="../general.js"></script>
+        <script>
+            "use strict";
+            const screen = new Screen(viewport.width-10,viewport.height-10,"gameScreen_Main");
+            const game = new Game("Animation Test");
+            const player = game.addSprite(new Sprite({
+                info:{
+                    name:"player",
+                    skins:[
+                        {
+                            name:"idleRight",
+                            url:"sprites/right/idle1.png"
+                        },
+                        {
+                            name:"idleLeft",
+                            url:"sprites/left/idle1.png"
+                        }
+                    ],
+                    speed:{
+                        x:200,
+                        y:250,
+                        base:{
+                            x:200,
+                            y:250
+                        }
+                    }
+                },
+                location:{
+                    x:(screen.width*0.5),
+                    y:(screen.height*0.5)
+                },
+                scale:{
+                    width:"default",
+                    height:"default"
+                }
+            }));
+            let playerSkins = player.getProperty("skins");
+            let rand = Math.random();
+            let keysDown = {};
+            game.mainLoopFunctions.push(function(){
+                let delta = game.timeData.delta;
+                
+            })
+            game.play();
+        </script>
+    </body>
+</html>
