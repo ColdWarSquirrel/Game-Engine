@@ -1,0 +1,61 @@
+<!--
+        X           X
+        X           X
+        X           X   
+
+     \                 /
+       ---------------
+
+
+          hi there
+            lol
+-->
+
+<!DOCTYPE html>
+<html lang="en-gb">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Game Engine! What?</title>
+        <style>
+            *:not(body,html,head){
+                max-width:600px;
+            }
+            body,html{
+                margin:0 auto;
+            }
+            div:first-of-type{
+                margin-left:25px;
+                padding:25px;
+            }
+            @media screen and (max-width:600px) {
+                div:first-of-type{
+                    margin-left:0px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1>You!</h1>
+            <h2>you there!</h2>
+            <h3>do you like games?</h3>
+            <p>I sure know I do. and I like making games. I just don't like learning a whole bunch of someone else's work to get a game made, so I made this.</p>
+            <p>it's pretty simple, take a look at the source code <a href="https://github.com/MattiasWebb/Game-Engine">here</a> (if you fancy)</p>
+            <p>so far using this I have made <a href="pong/">pong</a> and a (very basic) <a href="platformer/">platformer type thing</a>
+            <br>
+            god knows how long I'm going to keep these going
+            </p>
+            <p>
+                <h2>Basic Rules</h2>
+                <ul>
+                    <li>
+                        so after some tinkering I decided (probably rather stupidly) that there should just be a global <code>GameScreen</code> variable that the developer can resize, named (usefully) <code>gameScreen</code>. if you want to resize it, you have to use the function <code>.resize()</code> on the <code>gameScreen</code> variable.
+                    </li>
+                    <li>
+                        there's a <code>mainLoopFunctions</code> property attatched to the <code>Game</code> class, where you can add functions to run every frame.
+                    </li>
+                </ul>
+            </p>
+        </div>
+    </body>
+</html>

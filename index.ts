@@ -1,7 +1,7 @@
 "use strict";
 // omg starting commenting months after making it wow holy moly I mean whoa
 
-// might use this later, dunno what for jus ignore
+// oooo spooky ts-ignore
 // @ts-ignore
 const defaults = {
     screen:{
@@ -9,7 +9,7 @@ const defaults = {
     }
 };
 
-// just for shorthand access by a few characters, also makes more sense language-wise
+// just for shorthand access by a few characters, also makes more sense to read
 var viewport = {
     width:window.innerWidth,
     height:window.innerHeight
@@ -93,6 +93,7 @@ class Game{
     mainLoopFunctions: {():any}[];
     settings: {name:string,[key:string]:any}[];
     running: boolean;
+    autopause: boolean;
     timeData: { lastTime: number|undefined; delta: number; scale: number|undefined; };
     keysDown: object|any;
     ctx: CanvasRenderingContext2D;
@@ -101,6 +102,7 @@ class Game{
         this.entities = [];
         this.mainLoopFunctions = [];
         this.settings = [];
+        this.autopause = true;
         this.running = false;
         this.timeData = {
             lastTime:undefined,
@@ -109,20 +111,21 @@ class Game{
         }
         this.ctx = <CanvasRenderingContext2D>document.querySelector('canvas')!.getContext('2d');
         this.keysDown = {};
-
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") {
-                this.play();
-            } else {
+        if(this.autopause){
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "visible") {
+                    this.play();
+                } else {
+                    this.stop();
+                }
+            });
+            document.addEventListener("blur",()=>{
                 this.stop();
-            }
-        });
-        document.addEventListener("blur",()=>{
-            this.stop();
-        })
-        document.addEventListener("focus",()=>{
-            this.play();
-        })
+            })
+            document.addEventListener("focus",()=>{
+                this.play();
+            })
+        }
 
         // e.code is a string (KeyW, KeyA, etc), so it's setting the keysDown object property of that key to true or false
         document.addEventListener("keydown", (e)=>{
@@ -324,7 +327,7 @@ class Sprite{
     location: { x: number; y: number; z: number; };
     speed: { x: number; y: number; base: Vector; };
     velocity: Vector;
-    scale: { width: number|string; height: number|string; naturalWidth: number; naturalHeight: number; radius: number; naturalRadius: number; };
+    scale: { width: number; height: number; naturalWidth: number; naturalHeight: number; radius: number; naturalRadius: number; };
     skins: skinsInput[];
     colour: { fill: string; stroke: string; };
     hidden: boolean;
@@ -444,13 +447,13 @@ class Sprite{
             if(options.info.type=="box"){
                 this.type = "box";
                 if('scale' in options){
-                    if(options.scale.width!=="default"){
+                    if(typeof options.scale.width!=="string"){
                         this.scale.width = options.scale.width!;
-                        this.scale.naturalWidth = <number>options.scale.width;
+                        this.scale.naturalWidth = options.scale.width!;
                     }
-                    if(options.scale.height!=="default"){
+                    if(typeof options.scale.height!=="string"){
                         this.scale.height = options.scale.height!;
-                        this.scale.naturalHeight = <number>options.scale.height;
+                        this.scale.naturalHeight = options.scale.height!;
                     }
                 }
             }
@@ -458,12 +461,12 @@ class Sprite{
                 this.type = "ball";
                 if('scale' in options){
                     if('radius' in options.scale){
-                        this.scale.radius = <number>options.scale.radius;
-                        this.scale.naturalRadius = <number>options.scale.radius;
+                        this.scale.radius = options.scale.radius!;
+                        this.scale.naturalRadius = options.scale.radius!;
                     }else if('width' in options.scale || 'height' in options.scale){
-                        this.scale.width = 'width' in options.scale ? options.scale.width! : 0;
-                        this.scale.height = 'height' in options.scale ? options.scale.height! : 0;
-                        this.scale.radius = ((<number>this.scale.width+<number>this.scale.height)/2)/2;
+                        this.scale.width = 'width' in options.scale && typeof options.scale.width!=="string" ? options.scale.width! : 0;
+                        this.scale.height = 'height' in options.scale && typeof options.scale.height!=="string" ? options.scale.height! : 0;
+                        this.scale.radius = ((this.scale.width+this.scale.height)/2)/2;
                     }
                 }
             }
@@ -508,16 +511,16 @@ class Sprite{
             gameScreen.ctx.globalAlpha = this.opacity;
             if(this.type=="image"){
                 if(this.fullyLoaded == true){
-                    gameScreen.ctx.drawImage(this.skin, this.location.x, this.location.y, <number>this.skin.width, <number>this.skin.height);
+                    gameScreen.ctx.drawImage(this.skin, this.location.x, this.location.y, this.skin.width, this.skin.height);
                 }
             }else if(this.type=="box"){
                 gameScreen.ctx.beginPath();
                 gameScreen.ctx.fillStyle = this.colour.fill;
                 gameScreen.ctx.strokeStyle = this.colour.stroke;
                 if(this.fillMode == "fill"){
-                    gameScreen.ctx.fillRect(this.location.x, this.location.y, <number>this.scale.width, <number>this.scale.height);
+                    gameScreen.ctx.fillRect(this.location.x, this.location.y, this.scale.width, this.scale.height);
                 }
-                gameScreen.ctx.rect(this.location.x, this.location.y, <number>this.scale.width, <number>this.scale.height);
+                gameScreen.ctx.rect(this.location.x, this.location.y, this.scale.width, this.scale.height);
                 gameScreen.ctx.stroke();
             }else if(this.type=="ball"){
                 gameScreen.ctx.beginPath();
@@ -535,8 +538,6 @@ class Sprite{
             }
             gameScreen.ctx.restore();
         }
-        this.scale.width = <number>this.scale.width;
-        this.scale.height = <number>this.scale.height;
     }
     getProperty(name:string){
         if(this.customProperties.length>0){
@@ -556,14 +557,14 @@ class Sprite{
         let rect1:collisionRect = {
             x: this.location.x,
             y: this.location.y,
-            w: <number>this.scale.width,
-            h: <number>this.scale.height,
+            w: this.scale.width,
+            h: this.scale.height,
         };
         let rect2:collisionRect = {
             x: sprite.location.x,
             y: sprite.location.y,
-            w: <number>sprite.scale.width,
-            h: <number>sprite.scale.height,
+            w: sprite.scale.width,
+            h: sprite.scale.height,
         };
         if(this.type == "ball"){
             rect1 = {
@@ -596,14 +597,14 @@ class Sprite{
         let rect1:collisionRect = {
             x: this.location.x,
             y: this.location.y,
-            w: <number>this.scale.width,
-            h: <number>this.scale.height,
+            w: this.scale.width,
+            h: this.scale.height,
         };
         let rect2:collisionRect = {
             x: sprite.location.x,
             y: sprite.location.y,
-            w: <number>sprite.scale.width,
-            h: <number>sprite.scale.height,
+            w: sprite.scale.width,
+            h: sprite.scale.height,
         };
         if(this.type == "ball"){
             rect1 = {
@@ -634,16 +635,16 @@ class Sprite{
     }
     collisionDetail(sprite:Sprite,iscol=false){
         let margin = 15;
-        if(this.location.y <= sprite.location.y + <number>sprite.scale.height && this.location.y >= sprite.location.y + <number>sprite.scale.height - margin){ // bottom
+        if(this.location.y <= sprite.location.y + sprite.scale.height && this.location.y >= sprite.location.y + sprite.scale.height - margin){ // bottom
             return "bottom";
         }
-        else if(this.location.y + <number>this.scale.height >= sprite.location.y && this.location.y + <number>this.scale.height <= sprite.location.y + margin){ // top
+        else if(this.location.y + this.scale.height >= sprite.location.y && this.location.y + this.scale.height <= sprite.location.y + margin){ // top
             return "top";
         }
-        else if(this.location.x + <number>this.scale.width >= sprite.location.x && this.location.x + <number>this.scale.width <= sprite.location.x + margin){ // left
+        else if(this.location.x + this.scale.width >= sprite.location.x && this.location.x + this.scale.width <= sprite.location.x + margin){ // left
             return "left";
         }
-        else if(this.location.x <= sprite.location.x + <number>sprite.scale.width && this.location.x >= sprite.location.x + <number>sprite.scale.width - margin){ // right
+        else if(this.location.x <= sprite.location.x + sprite.scale.width && this.location.x >= sprite.location.x + sprite.scale.width - margin){ // right
             return "right";
         }else{ // inside
             if(iscol==true){
@@ -667,8 +668,8 @@ class Sprite{
     isCoordsOver(x:number,y:number){
         let minSelf = this.location;
         let maxSelf:Vector = {
-            x:this.location.x+<number>this.scale.width,
-            y:this.location.y+<number>this.scale.height
+            x:this.location.x+this.scale.width,
+            y:this.location.y+this.scale.height
         }
         let target:Vector = {
             x:x,
