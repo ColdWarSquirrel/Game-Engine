@@ -8,5 +8,5 @@ so far using this I have made [pong](https://thesomething.uk/engine/pong/pong) a
 god knows how long I'm going to keep these going
 
 ## Basic Rules
-- so after some tinkering I decided (probably rather stupidly) that there should just be a global GameScreen variable that the developer can resize, named (usefully) `gameScreen`. if you want to resize it, you have to use the function `.resize()` on the gameScreen variable.
-- there's a `mainLoopFunctions` property attatched to the Game class, where you can add functions to run every frame.
+- so after some tinkering I decided (probably rather stupidly) that there should just be a global `GameScreen` variable that the developer can resize, named (usefully) `gameScreen`. if you want to resize it, you have to use the function `.resize()` on the `gameScreen` variable.
+- there's a `mainLoopFunctions` property attatched to the `Game` class, where you can add functions to run every frame.
