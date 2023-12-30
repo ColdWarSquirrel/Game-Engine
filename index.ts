@@ -275,8 +275,9 @@ interface spriteParameters{
         z?:number
     }, 
     scale:{
-        width:number|string,
-        height:number|string
+        width?:number|string,
+        height?:number|string,
+        radius?:number
     }
 }
 interface spriteProcessed{
@@ -444,11 +445,11 @@ class Sprite{
                 this.type = "box";
                 if('scale' in options){
                     if(options.scale.width!=="default"){
-                        this.scale.width = options.scale.width;
+                        this.scale.width = options.scale.width!;
                         this.scale.naturalWidth = <number>options.scale.width;
                     }
                     if(options.scale.height!=="default"){
-                        this.scale.height = options.scale.height;
+                        this.scale.height = options.scale.height!;
                         this.scale.naturalHeight = <number>options.scale.height;
                     }
                 }
@@ -460,8 +461,8 @@ class Sprite{
                         this.scale.radius = <number>options.scale.radius;
                         this.scale.naturalRadius = <number>options.scale.radius;
                     }else if('width' in options.scale || 'height' in options.scale){
-                        this.scale.width = 'width' in options.scale ? options.scale.width : 0;
-                        this.scale.height = 'height' in options.scale ? options.scale.height : 0;
+                        this.scale.width = 'width' in options.scale ? options.scale.width! : 0;
+                        this.scale.height = 'height' in options.scale ? options.scale.height! : 0;
                         this.scale.radius = ((<number>this.scale.width+<number>this.scale.height)/2)/2;
                     }
                 }

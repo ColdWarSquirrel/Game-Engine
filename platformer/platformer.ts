@@ -1,6 +1,8 @@
 "use strict";
 gameScreen.resize(viewport.width-10,viewport.height-10);
+// @ts-ignore
 const game = new Game("Jumpy Jump Autistic");
+// @ts-ignore
 const player = game.addSprite(new Sprite({  
     info:{
         name:"player",
@@ -176,7 +178,6 @@ let terrain = game.addSprites(
         }   
     })
 );
-let totalFrames = 1;
 let stopAt = 0.05;
 game.resortByZIndex();
 document.body.style.backgroundColor = "black";
@@ -188,7 +189,6 @@ game.mainLoopFunctions.push(function(){
     let delta = game.timeData.delta;
     let slowSpeed = 1;
     let beforePos = player.location;
-    totalFrames+=1;
     let currentlyColliding = {x:false,y:false};
     player.location.x += (player.speed.x * player.velocity.x * slowSpeed) * delta;
     if(player.velocity.y > 0){
@@ -308,4 +308,4 @@ game.mainLoopFunctions.push(function(){
         direction.x = 0;
     }
 })
-game.play();
+game.play(); // :3

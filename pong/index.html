@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Pong</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body,html{
+                margin:0;
+                text-align:center;
+            }
+            .main{
+                padding:0;
+                max-width:99vw;
+                max-height:99vh;
+                width:fit-content;
+                height:fit-content;
+                border:1px black solid;
+                position: absolute; 
+                left: 0; 
+                right: 0; 
+                margin-left: auto; 
+                margin-right: auto;
+                overflow: hidden;
+            }
+            canvas{
+                cursor: none;
+                border-bottom:1px solid black;
+            }
+            #outputlog{
+                margin-left:auto;
+                margin-right:auto;
+                display:inline-block;
+                height:200px;
+                width:100%;
+                padding-right: 17px;
+                overflow-y:scroll;
+                box-sizing: content-box;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main">
+            <canvas id="gameScreen_Main"></canvas><br>
+            <div id="outputlog">
+                Welcome to pong!<br>
+                Wins: <span id="score"></span><br>
+                High Score: <span id="highScore"></span><br>
+                Losses: <span id="losses"></span><br>
+                Win/Loss Ratio: <span id="wlratio"></span>
+            </div>
+        </div>
+        <script src="../index.js"></script>
+        <script src="pong.js"></script>
+    </body>
+</html>
