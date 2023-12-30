@@ -24,7 +24,8 @@
             }
             canvas{
                 cursor: default;
-                border-bottom:1px solid black;
+                border:1px solid black;
+                margin-top:5px;
             }
             #outputlog{
                 margin-left:auto;
@@ -39,45 +40,50 @@
         </style>
     </head>
     <body>
-        <div class="main">
-            <canvas id="gameScreen_Main"></canvas><br>
-            <div id="outputlog">
-            </div>
-        </div>
-        <script src="../general.js"></script>
+        <canvas id="gameScreen_Main"></canvas>
+        <script src="../index.js"></script>
         <script>
             "use strict";
-            const screen = new Screen(viewport.width-10,viewport.height-10,"gameScreen_Main");
+            const screen = new Screen(700,700,"gameScreen_Main");
             const game = new Game("Animation Test");
             const player = game.addSprite(new Sprite({
                 info:{
                     name:"player",
+                    type:"image",
                     skins:[
                         {
-                            name:"idleRight",
-                            url:"sprites/right/idle1.png"
+                            name:"0",
+                            url:"sprites/0.gif"
                         },
                         {
-                            name:"idleLeft",
-                            url:"sprites/left/idle1.png"
-                        }
-                    ],
-                    speed:{
-                        x:200,
-                        y:250,
-                        base:{
-                            x:200,
-                            y:250
-                        }
-                    }
+                            name:"1",
+                            url:"sprites/1.gif"
+                        },
+                        {
+                            name:"2",
+                            url:"sprites/2.gif"
+                        },
+                        {
+                            name:"3",
+                            url:"sprites/3.gif"
+                        },
+                        {
+                            name:"4",
+                            url:"sprites/4.gif"
+                        },
+                        {
+                            name:"5",
+                            url:"sprites/5.gif"
+                        },
+                    ]
                 },
                 location:{
-                    x:(screen.width*0.5),
-                    y:(screen.height*0.5)
+                    x:(screen.width*0.5)-250,
+                    y:(screen.height*0.5)-250
                 },
                 scale:{
-                    width:"default",
-                    height:"default"
+                    width:500,
+                    height:500
                 }
             }));
             let playerSkins = player.getProperty("skins");
