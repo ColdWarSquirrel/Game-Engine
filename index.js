@@ -369,9 +369,11 @@ class Sprite {
         let skin = this.skins.filter((a) => {
             return a.name == name;
         })[0];
-        this.skin = skin.sprite;
-        this.scale.width = skin.scale.width;
-        this.scale.height = skin.scale.height;
+        if (skin) {
+            this.skin = skin.sprite;
+            this.scale.width = skin.scale.width;
+            this.scale.height = skin.scale.height;
+        }
     }
     draw() {
         if (this.hidden == false) {

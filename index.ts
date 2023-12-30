@@ -227,12 +227,12 @@ class Game{
 interface skinsInput{
     name:string,
     url:string,
-    sprite:HTMLImageElement,
-    scale:{
+    sprite?:HTMLImageElement,
+    scale?:{
         width:number,
         height:number,
-        naturalWidth:number,
-        naturalHeight:number
+        naturalWidth?:number,
+        naturalHeight?:number
     }
 }
 interface skinsMoInfo{
@@ -250,29 +250,29 @@ interface skinsMoInfo{
 interface spriteParameters{
     info:{
         name:string,
-        skins:skinsInput[], 
+        skins?:skinsInput[], 
         type:string,
-        fillMode:string,
-        colour:{
+        fillMode?:string,
+        colour?:{
             fill:string,
             stroke:string
         },
-        speed:{
+        speed?:{
             x:number,
             y:number,
-            base:{
+            base?:{
                 x:number,
                 y:number
             }
         },
-        opacity:number,
-        hidden:boolean,
-        tags:Array<string>
+        opacity?:number,
+        hidden?:boolean,
+        tags?:Array<string>
     }, 
     location:{
         x:number,
         y:number,
-        z:number
+        z?:number
     }, 
     scale:{
         width:number|string,
@@ -386,21 +386,21 @@ class Sprite{
             this.name = "John Derp";
         }
         if('hidden' in options.info){
-            this.hidden = options.info.hidden;
+            this.hidden = options.info.hidden!;
         }
         if('colour' in options.info){
-            if('fill' in options.info.colour){
+            if('fill' in options.info.colour!){
                 this.colour.fill = options.info.colour.fill;
             }
-            if('stroke' in options.info.colour){
+            if('stroke' in options.info.colour!){
                 this.colour.stroke = options.info.colour.stroke;
             }
         }
         if('opacity' in options.info){
-            this.opacity = options.info.opacity;
+            this.opacity = options.info.opacity!;
         }
         if('tags' in options.info){
-            this.tags = options.info.tags;
+            this.tags = options.info.tags!;
         }
         if('location' in options){
             if('x' in options.location){
@@ -410,21 +410,21 @@ class Sprite{
                 this.location.y = options.location.y;
             }
             if('z' in options.location){
-                this.location.z = options.location.z;
+                this.location.z = options.location.z!;
             }
         }
         if('speed' in options.info){
-            if('x' in options.info.speed){
+            if('x' in options.info.speed!){
                 this.speed.x = options.info.speed.x;
             }
-            if('y' in options.info.speed){
+            if('y' in options.info.speed!){
                 this.speed.y = options.info.speed.y;
             }
-            if('base' in options.info.speed){
-                if('x' in options.info.speed.base){
+            if('base' in options.info.speed!){
+                if('x' in options.info.speed.base!){
                     this.speed.base.x = options.info.speed.base.x;
                 }
-                if('y' in options.info.speed.base){
+                if('y' in options.info.speed.base!){
                     this.speed.base.y = options.info.speed.base.y;
                 }
             }else{
@@ -470,8 +470,8 @@ class Sprite{
                 this.type = "image";
                 if('skins' in options.info){
                     this.fullyLoaded = false;
-                    for(let i = 0; i < options.info.skins.length; i++){
-                        let skin = options.info.skins[i];
+                    for(let i = 0; i < options.info.skins!.length; i++){
+                        let skin = options.info.skins![i];
                         let w = options?.scale?.width ?? "default";
                         let h = options?.scale?.height ?? "default";
                         console.log(this.name,w,h);
@@ -484,7 +484,7 @@ class Sprite{
                             }
                         },()=>{this.fullyLoaded = true;}));
                     }
-                    this.skin = this.skins[0].sprite;
+                    this.skin = this.skins[0].sprite!;
                 }
             }
             // to prevent drawing an image before it's loaded, wouldn't do anything if it did, it's just weird
@@ -495,9 +495,11 @@ class Sprite{
         let skin = this.skins.filter((a)=>{
             return a.name==name;
         })[0];
-        this.skin = skin.sprite;
-        this.scale.width = skin.scale.width;
-        this.scale.height = skin.scale.height;
+        if(skin){
+            this.skin = skin.sprite!;
+            this.scale.width = skin.scale!.width;
+            this.scale.height = skin.scale!.height;
+        }
     }
     draw(){
         if(this.hidden==false){ 
