@@ -444,26 +444,35 @@ class Sprite{
             }
             if(options.info.type=="image"){
                 this.type = "image";
+                if('scale' in options){
+                    if(typeof options.scale.width!=="string"){
+                        this.scale.width = options.scale.width!;
+                        this.scale.naturalWidth = options.scale.width!;
+                    }
+                    if(typeof options.scale.height!=="string"){
+                        this.scale.height = options.scale.height!;
+                        this.scale.naturalHeight = options.scale.height!;
+                    }
+                }
                 if('skins' in options.info){
                     this.fullyLoaded = false;
                     for(let i = 0; i < options.info.skins!.length; i++){
                         let skin = options.info.skins![i];
-                        let w = options?.scale?.width ?? "default";
-                        let h = options?.scale?.height ?? "default";
-                        console.log(this.name,w,h);
                         this.skins.push(new Skin({
                             name:skin.name,
                             url:skin.url,
                             scale:{
-                                width:w,
-                                height:h
+                                width:this.scale.width,
+                                height:this.scale.height
                             }
-                        },()=>{this.fullyLoaded = true;}));
+                        },()=>{
+                            this.fullyLoaded = true;
+                            if('anims' in options.info){
+                                this.animations = options.info.anims!;
+                            }
+                        }));
                     }
                     this.skin = this.skins[0].sprite!;
-                }
-                if('anims' in options.info){
-                    this.animations = options.info.anims!;
                 }
             }
             // to prevent drawing an image before it's loaded, wouldn't do anything if it did, it's just weird
@@ -512,6 +521,20 @@ class Sprite{
                 }
             }
             gameScreen.ctx.restore();
+        }
+    }
+    changeSize(options:{width:number,height:number}){
+        let isWidth = options?.width!==undefined;
+        let isHeight = options?.height!==undefined
+        let difference = {
+            width: isWidth ? (options.width > this.scale.width ? options.width-this.scale.width : this.scale.width-options.width) : 0,
+            height: isHeight ? (options.height > this.scale.height ? options.height-this.scale.height : this.scale.height-options.height) : 0
+        }
+        this.scale.width = isWidth ? options.width : this.scale.width;
+        this.scale.height = isHeight ? options.height : this.scale.height;
+        if(this.skins.length >= 1){
+            for(let skin = 0; skin < this.skins.length; skin++){
+            }
         }
     }
     getProperty(name:string){
@@ -713,7 +736,6 @@ class Skin{
                             this.sprite.height = options.scale!.height;
                         }
                     }
-                    console.log(this.sprite.width);
                 }else{
                     this.sprite.width = this.sprite.naturalWidth;
                     this.sprite.height = this.sprite.naturalHeight;
@@ -730,26 +752,29 @@ class Skin{
 interface animParams{
     parent:Sprite,
     fps?:number,
-    frames:skinsInput[]
+    frames:skinsInput[],
+    scale?:scale
 }
 class Anim{
     parent: Sprite|any;
     frames: any[];
     fps: number;
-    scale: { width: number; height: number; naturalWidth: number; naturalHeight: number; };
+    scale: { width: number|string; height: number|string; naturalWidth: number; naturalHeight: number; };
     currentFrame:number;
     timeNeeded:number;
     timeTracker:number;
+    paused:boolean;
     constructor(options:animParams){
         this.parent;
+        this.paused = false;
         this.frames = new Array();
         this.fps = 12;
         this.currentFrame = 0;
         this.timeNeeded = 0;
         this.timeTracker = 0;
         this.scale = {
-            width:0,
-            height:0,
+            width:"default",
+            height:"default",
             naturalWidth:0,
             naturalHeight:0
         }
@@ -757,6 +782,25 @@ class Anim{
             this.parent = options.parent!;
             if('fps' in options){
                 this.fps = options.fps!;
+            }
+            if('scale' in options){
+                if('width' in options.scale!){
+                    if(typeof options.scale.width == 'string'){
+                        this.scale.width = 'default'
+                    }else{
+                        this.scale.width = options.scale.width;
+                    }
+                }
+                if('height' in options.scale!){
+                    if(typeof options.scale.height == 'string'){
+                        this.scale.height = 'default'
+                    }else{
+                        this.scale.height = options.scale.height;
+                    }
+                }
+            }else{
+                this.scale.width = this.parent.scale.width;
+                this.scale.height = this.parent.scale.height;
             }
             if('frames' in options){
                 this.frames = options.frames!;
@@ -766,8 +810,8 @@ class Anim{
                         name:this.frames[frame].name,
                         url:this.frames[frame].url,
                         scale:{
-                            width:"default",
-                            height:"default"
+                            width:this.scale.width,
+                            height:this.scale.height
                         }
                     });
                 }
@@ -778,14 +822,34 @@ class Anim{
         }
     }
     update(delta:number){
-        this.timeTracker+=delta;
-        if(this.timeTracker>=this.timeNeeded){
-            this.timeTracker = 0;
-            this.currentFrame+=1;
-            if(this.frames[this.currentFrame]==undefined){
-                this.currentFrame = 0;
+        if(this.paused==false){
+            this.timeTracker+=delta;
+            if(this.timeTracker>=this.timeNeeded){
+                this.timeTracker = 0;
+                this.currentFrame+=1;
+                if(this.frames[this.currentFrame]==undefined){
+                    this.currentFrame = 0;
+                }
+                this.parent.skin = this.frames[this.currentFrame].sprite;
             }
-            this.parent.skin = this.frames[this.currentFrame].sprite;
+        }
+    }
+    pause(){
+        this.paused = true;
+    }
+    stop(){
+        this.currentFrame = 0;
+        this.parent.skin = this.frames[0].sprite;
+        this.pause();
+    }
+    play(){
+        this.paused = false;
+    }
+    restart(play:boolean=false){
+        this.currentFrame = 0;
+        this.parent.skin = this.frames[0].sprite;
+        if(play==true){
+            this.play();
         }
     }
 }
