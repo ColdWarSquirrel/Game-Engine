@@ -1,13 +1,13 @@
 "use strict";
 // omg starting commenting months after making it wow holy moly I mean whoa
-// might use this later, dunno what for jus ignore
+// oooo spooky ts-ignore
 // @ts-ignore
 const defaults = {
     screen: {
         background: "#FFFFFF"
     }
 };
-// just for shorthand access by a few characters, also makes more sense language-wise
+// just for shorthand access by a few characters, also makes more sense to read
 var viewport = {
     width: window.innerWidth,
     height: window.innerHeight
@@ -76,6 +76,7 @@ class Game {
         this.entities = [];
         this.mainLoopFunctions = [];
         this.settings = [];
+        this.autopause = true;
         this.running = false;
         this.timeData = {
             lastTime: undefined,
@@ -84,20 +85,22 @@ class Game {
         };
         this.ctx = document.querySelector('canvas').getContext('2d');
         this.keysDown = {};
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") {
-                this.play();
-            }
-            else {
+        if (this.autopause) {
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "visible") {
+                    this.play();
+                }
+                else {
+                    this.stop();
+                }
+            });
+            document.addEventListener("blur", () => {
                 this.stop();
-            }
-        });
-        document.addEventListener("blur", () => {
-            this.stop();
-        });
-        document.addEventListener("focus", () => {
-            this.play();
-        });
+            });
+            document.addEventListener("focus", () => {
+                this.play();
+            });
+        }
         // e.code is a string (KeyW, KeyA, etc), so it's setting the keysDown object property of that key to true or false
         document.addEventListener("keydown", (e) => {
             this.keysDown[e.code] = true;
@@ -168,6 +171,10 @@ class Game {
         gameScreen.clear();
         for (var i = 0; i < this.entities.length; i++) {
             this.entities[i].draw();
+            if (this.entities[i].animations.length >= 1) {
+                this.entities[i].animations[0].update(this.timeData.delta);
+            }
+            ;
         }
     }
     resortByZIndex() {
@@ -206,10 +213,11 @@ class Sprite {
     constructor(options, customProperties = []) {
         var _a, _b, _c, _d;
         // setting defaults at beginning instead of as a contingency, also less else statements (less confusing to read)
-        this.skin = new Image();
-        this.spriteUrl = "";
         this.name = "John Derp";
         this.type = "box";
+        this.skin = new Image();
+        this.animations = [];
+        this.spriteUrl = "";
         this.location = {
             x: 0,
             y: 0,
@@ -250,9 +258,6 @@ class Sprite {
         // hot disgusting mess of if statements
         if ('name' in options.info) {
             this.name = options.info.name;
-        }
-        else {
-            this.name = "John Derp";
         }
         if ('hidden' in options.info) {
             this.hidden = options.info.hidden;
@@ -313,11 +318,11 @@ class Sprite {
             if (options.info.type == "box") {
                 this.type = "box";
                 if ('scale' in options) {
-                    if (options.scale.width !== "default") {
+                    if (typeof options.scale.width !== "string") {
                         this.scale.width = options.scale.width;
                         this.scale.naturalWidth = options.scale.width;
                     }
-                    if (options.scale.height !== "default") {
+                    if (typeof options.scale.height !== "string") {
                         this.scale.height = options.scale.height;
                         this.scale.naturalHeight = options.scale.height;
                     }
@@ -331,8 +336,8 @@ class Sprite {
                         this.scale.naturalRadius = options.scale.radius;
                     }
                     else if ('width' in options.scale || 'height' in options.scale) {
-                        this.scale.width = 'width' in options.scale ? options.scale.width : 0;
-                        this.scale.height = 'height' in options.scale ? options.scale.height : 0;
+                        this.scale.width = 'width' in options.scale && typeof options.scale.width !== "string" ? options.scale.width : 0;
+                        this.scale.height = 'height' in options.scale && typeof options.scale.height !== "string" ? options.scale.height : 0;
                         this.scale.radius = ((this.scale.width + this.scale.height) / 2) / 2;
                     }
                 }
@@ -356,6 +361,9 @@ class Sprite {
                         }, () => { this.fullyLoaded = true; }));
                     }
                     this.skin = this.skins[0].sprite;
+                }
+                if ('anims' in options.info) {
+                    this.animations = options.info.anims;
                 }
             }
             // to prevent drawing an image before it's loaded, wouldn't do anything if it did, it's just weird
@@ -411,8 +419,6 @@ class Sprite {
             }
             gameScreen.ctx.restore();
         }
-        this.scale.width = this.scale.width;
-        this.scale.height = this.scale.height;
     }
     getProperty(name) {
         if (this.customProperties.length > 0) {
@@ -617,14 +623,13 @@ class Skin {
     }
 }
 class Anim {
-    constructor(options = {
-        parent: Sprite,
-        fps: 24,
-        frames: Array()
-    }) {
+    constructor(options) {
         this.parent;
         this.frames = new Array();
-        this.fps = 24;
+        this.fps = 12;
+        this.currentFrame = 0;
+        this.timeNeeded = 0;
+        this.timeTracker = 0;
         this.scale = {
             width: 0,
             height: 0,
@@ -638,10 +643,33 @@ class Anim {
             }
             if ('frames' in options) {
                 this.frames = options.frames;
+                console.log(this.frames);
+                for (let frame = 0; frame < this.frames.length; frame++) {
+                    this.frames[frame] = new Skin({
+                        name: this.frames[frame].name,
+                        url: this.frames[frame].url,
+                        scale: {
+                            width: "default",
+                            height: "default"
+                        }
+                    });
+                }
             }
+            this.timeNeeded = 1 / this.fps;
         }
         else {
             console.error("you didn't give the animation a parent you stupid sod ( in a nice way :] )");
+        }
+    }
+    update(delta) {
+        this.timeTracker += delta;
+        if (this.timeTracker >= this.timeNeeded) {
+            this.timeTracker = 0;
+            this.currentFrame += 1;
+            if (this.frames[this.currentFrame] == undefined) {
+                this.currentFrame = 0;
+            }
+            this.parent.skin = this.frames[this.currentFrame].sprite;
         }
     }
 }
