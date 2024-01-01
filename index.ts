@@ -193,6 +193,9 @@ class Game{
         gameScreen.clear();
         for(var i = 0; i<this.entities.length; i++){
             this.entities[i].draw();
+            if(this.entities[i].animations.length >= 1){
+                this.entities[i].animations[0].update(this.timeData.delta);
+            };
         }
     }
     resortByZIndex(){
@@ -253,7 +256,8 @@ interface skinsMoInfo{
 interface spriteParameters{
     info:{
         name:string,
-        skins?:skinsInput[], 
+        skins?:skinsInput[],
+        anims?:Anim[],
         type:string,
         fillMode?:string,
         colour?:{
@@ -283,38 +287,6 @@ interface spriteParameters{
         radius?:number
     }
 }
-interface spriteProcessed{
-    info:{
-        name:string,
-        skins:skinsMoInfo|Skin[],
-        type:string,
-        fillMode:string,
-        colour:{
-            fill:string,
-            stroke:string
-        },
-        speed:{
-            x:number,
-            y:number,
-            base:{
-                x:number,
-                y:number
-            }
-        },
-        opacity:number,
-        hidden:boolean,
-        tags:Array<string>
-    }, 
-    location:{
-        x:number,
-        y:number,
-        z:number
-    }, 
-    scale:{
-        width:number|string,
-        height:number|string
-    }
-}
 interface collisionRect{
     x: number,
     y: number,
@@ -339,12 +311,14 @@ class Sprite{
     fullyLoaded: boolean;
     skin: HTMLImageElement;
     spriteUrl: string;
+    animations: Anim[]|[];
     constructor(options:spriteParameters, customProperties:any[]=[]){
         // setting defaults at beginning instead of as a contingency, also less else statements (less confusing to read)
-        this.skin = new Image();
-        this.spriteUrl = "";
         this.name = "John Derp";
         this.type = "box";
+        this.skin = new Image();
+        this.animations = [];
+        this.spriteUrl = "";
         this.location = {
             x:0,
             y:0,
@@ -386,8 +360,6 @@ class Sprite{
         // hot disgusting mess of if statements
         if('name' in options.info){
             this.name = options.info.name;
-        }else{
-            this.name = "John Derp";
         }
         if('hidden' in options.info){
             this.hidden = options.info.hidden!;
@@ -472,21 +444,33 @@ class Sprite{
             }
             if(options.info.type=="image"){
                 this.type = "image";
+                if('scale' in options){
+                    if(typeof options.scale.width!=="string"){
+                        this.scale.width = options.scale.width!;
+                        this.scale.naturalWidth = options.scale.width!;
+                    }
+                    if(typeof options.scale.height!=="string"){
+                        this.scale.height = options.scale.height!;
+                        this.scale.naturalHeight = options.scale.height!;
+                    }
+                }
                 if('skins' in options.info){
                     this.fullyLoaded = false;
                     for(let i = 0; i < options.info.skins!.length; i++){
                         let skin = options.info.skins![i];
-                        let w = options?.scale?.width ?? "default";
-                        let h = options?.scale?.height ?? "default";
-                        console.log(this.name,w,h);
                         this.skins.push(new Skin({
                             name:skin.name,
                             url:skin.url,
                             scale:{
-                                width:w,
-                                height:h
+                                width:this.scale.width,
+                                height:this.scale.height
                             }
-                        },()=>{this.fullyLoaded = true;}));
+                        },()=>{
+                            this.fullyLoaded = true;
+                            if('anims' in options.info){
+                                this.animations = options.info.anims!;
+                            }
+                        }));
                     }
                     this.skin = this.skins[0].sprite!;
                 }
@@ -537,6 +521,20 @@ class Sprite{
                 }
             }
             gameScreen.ctx.restore();
+        }
+    }
+    changeSize(options:{width:number,height:number}){
+        let isWidth = options?.width!==undefined;
+        let isHeight = options?.height!==undefined
+        let difference = {
+            width: isWidth ? (options.width > this.scale.width ? options.width-this.scale.width : this.scale.width-options.width) : 0,
+            height: isHeight ? (options.height > this.scale.height ? options.height-this.scale.height : this.scale.height-options.height) : 0
+        }
+        this.scale.width = isWidth ? options.width : this.scale.width;
+        this.scale.height = isHeight ? options.height : this.scale.height;
+        if(this.skins.length >= 1){
+            for(let skin = 0; skin < this.skins.length; skin++){
+            }
         }
     }
     getProperty(name:string){
@@ -738,7 +736,6 @@ class Skin{
                             this.sprite.height = options.scale!.height;
                         }
                     }
-                    console.log(this.sprite.width);
                 }else{
                     this.sprite.width = this.sprite.naturalWidth;
                     this.sprite.height = this.sprite.naturalHeight;
@@ -752,38 +749,108 @@ class Skin{
         }
     }
 }
+interface animParams{
+    parent:Sprite,
+    fps?:number,
+    frames:skinsInput[],
+    scale?:scale
+}
 class Anim{
     parent: Sprite|any;
     frames: any[];
     fps: number;
-    scale: { width: number; height: number; naturalWidth: number; naturalHeight: number; };
-    constructor(options={
-        parent:Sprite,
-        fps:24,
-        frames:Array()
-    }){
+    scale: { width: number|string; height: number|string; naturalWidth: number; naturalHeight: number; };
+    currentFrame:number;
+    timeNeeded:number;
+    timeTracker:number;
+    paused:boolean;
+    constructor(options:animParams){
         this.parent;
+        this.paused = false;
         this.frames = new Array();
-        this.fps = 24;
+        this.fps = 12;
+        this.currentFrame = 0;
+        this.timeNeeded = 0;
+        this.timeTracker = 0;
         this.scale = {
-            width:0,
-            height:0,
+            width:"default",
+            height:"default",
             naturalWidth:0,
             naturalHeight:0
         }
         if('parent' in options){
-            this.parent = options.parent;
+            this.parent = options.parent!;
             if('fps' in options){
-                this.fps = options.fps;
+                this.fps = options.fps!;
+            }
+            if('scale' in options){
+                if('width' in options.scale!){
+                    if(typeof options.scale.width == 'string'){
+                        this.scale.width = 'default'
+                    }else{
+                        this.scale.width = options.scale.width;
+                    }
+                }
+                if('height' in options.scale!){
+                    if(typeof options.scale.height == 'string'){
+                        this.scale.height = 'default'
+                    }else{
+                        this.scale.height = options.scale.height;
+                    }
+                }
+            }else{
+                this.scale.width = this.parent.scale.width;
+                this.scale.height = this.parent.scale.height;
             }
             if('frames' in options){
-                this.frames = options.frames;
+                this.frames = options.frames!;
+                console.log(this.frames);
+                for(let frame = 0; frame < this.frames.length; frame++){
+                    this.frames[frame] = new Skin({
+                        name:this.frames[frame].name,
+                        url:this.frames[frame].url,
+                        scale:{
+                            width:this.scale.width,
+                            height:this.scale.height
+                        }
+                    });
+                }
             }
-            
+            this.timeNeeded = 1/this.fps;
         }else{
             console.error("you didn't give the animation a parent you stupid sod ( in a nice way :] )");
         }
-        
+    }
+    update(delta:number){
+        if(this.paused==false){
+            this.timeTracker+=delta;
+            if(this.timeTracker>=this.timeNeeded){
+                this.timeTracker = 0;
+                this.currentFrame+=1;
+                if(this.frames[this.currentFrame]==undefined){
+                    this.currentFrame = 0;
+                }
+                this.parent.skin = this.frames[this.currentFrame].sprite;
+            }
+        }
+    }
+    pause(){
+        this.paused = true;
+    }
+    stop(){
+        this.currentFrame = 0;
+        this.parent.skin = this.frames[0].sprite;
+        this.pause();
+    }
+    play(){
+        this.paused = false;
+    }
+    restart(play:boolean=false){
+        this.currentFrame = 0;
+        this.parent.skin = this.frames[0].sprite;
+        if(play==true){
+            this.play();
+        }
     }
 }
 /*
