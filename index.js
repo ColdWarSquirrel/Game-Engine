@@ -107,6 +107,9 @@ class Camera {
         ;
     }
     ;
+    giveParent(parent) {
+        this.parent = parent;
+    }
     isEntityVisible(sprite) {
         let rect1 = {
             x: this.location.x,
@@ -302,6 +305,7 @@ class Game {
 }
 class Sprite {
     constructor(options, customProperties = []) {
+        var _a, _b, _c, _d;
         // setting defaults at beginning instead of as a contingency, also less else statements (less confusing to read)
         this.name = "John Derp";
         this.type = "box";
@@ -434,16 +438,6 @@ class Sprite {
             }
             if (options.info.type == "image") {
                 this.type = "image";
-                if ('scale' in options) {
-                    if (typeof options.scale.width !== "string") {
-                        this.scale.width = options.scale.width;
-                        this.scale.naturalWidth = options.scale.width;
-                    }
-                    if (typeof options.scale.height !== "string") {
-                        this.scale.height = options.scale.height;
-                        this.scale.naturalHeight = options.scale.height;
-                    }
-                }
                 if ('skins' in options.info) {
                     this.fullyLoaded = false;
                     for (let i = 0; i < options.info.skins.length; i++) {
@@ -452,13 +446,31 @@ class Sprite {
                             name: skin.name,
                             url: skin.url,
                             scale: {
-                                width: this.scale.width,
-                                height: this.scale.height
+                                width: (_b = (_a = options === null || options === void 0 ? void 0 : options.scale) === null || _a === void 0 ? void 0 : _a.width) !== null && _b !== void 0 ? _b : "default",
+                                height: (_d = (_c = options === null || options === void 0 ? void 0 : options.scale) === null || _c === void 0 ? void 0 : _c.height) !== null && _d !== void 0 ? _d : "default"
                             }
                         }, () => {
                             this.fullyLoaded = true;
                             if ('anims' in options.info) {
                                 this.animations = options.info.anims;
+                            }
+                            if ('scale' in options) {
+                                if (typeof options.scale.width === "string") {
+                                    this.scale.width = this.skin.naturalWidth;
+                                    this.scale.naturalWidth = this.skin.naturalWidth;
+                                }
+                                else {
+                                    this.scale.width = options.scale.width;
+                                    this.scale.naturalWidth = options.scale.width;
+                                }
+                                if (typeof options.scale.height === "string") {
+                                    this.scale.height = this.skin.naturalHeight;
+                                    this.scale.naturalHeight = this.skin.naturalHeight;
+                                }
+                                else {
+                                    this.scale.height = options.scale.height;
+                                    this.scale.naturalHeight = options.scale.height;
+                                }
                             }
                         }));
                     }

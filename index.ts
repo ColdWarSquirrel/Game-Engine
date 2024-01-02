@@ -99,6 +99,7 @@ interface cameraParameters{
 class Camera{
     name: string;
     scale:scale;
+    parent:any;
     location:Vector;
     entityList:Sprite[]|any[];
     constructor(options:cameraParameters){
@@ -106,7 +107,6 @@ class Camera{
         let height = options?.scale?.height ?? "full";
         let name = options?.name ?? "Camera";
         let entityList = options?.entities ?? [];
-
         this.entityList = [];
         this.location = {
             x:gameScreen.width/2,
@@ -131,6 +131,9 @@ class Camera{
             this.scale.height = gameScreen.height;
         };
     };
+    giveParent(parent:any){
+        this.parent = parent;
+    }
     isEntityVisible(sprite:Sprite){
         let rect1:collisionRect = {
             x: this.location.x,
@@ -543,16 +546,6 @@ class Sprite{
             }
             if(options.info.type=="image"){
                 this.type = "image";
-                if('scale' in options){
-                    if(typeof options.scale.width!=="string"){
-                        this.scale.width = options.scale.width!;
-                        this.scale.naturalWidth = options.scale.width!;
-                    }
-                    if(typeof options.scale.height!=="string"){
-                        this.scale.height = options.scale.height!;
-                        this.scale.naturalHeight = options.scale.height!;
-                    }
-                }
                 if('skins' in options.info){
                     this.fullyLoaded = false;
                     for(let i = 0; i < options.info.skins!.length; i++){
@@ -561,13 +554,29 @@ class Sprite{
                             name:skin.name,
                             url:skin.url,
                             scale:{
-                                width:this.scale.width,
-                                height:this.scale.height
+                                width:options?.scale?.width ?? "default",
+                                height:options?.scale?.height ?? "default"
                             }
                         },()=>{
                             this.fullyLoaded = true;
                             if('anims' in options.info){
                                 this.animations = options.info.anims!;
+                            }
+                            if('scale' in options){
+                                if(typeof options.scale.width==="string"){
+                                    this.scale.width = this.skin.naturalWidth!;
+                                    this.scale.naturalWidth = this.skin.naturalWidth!;
+                                }else{
+                                    this.scale.width = options.scale.width!;
+                                    this.scale.naturalWidth = options.scale.width!;
+                                }
+                                if(typeof options.scale.height==="string"){
+                                    this.scale.height = this.skin.naturalHeight!;
+                                    this.scale.naturalHeight = this.skin.naturalHeight!;
+                                }else{
+                                    this.scale.height = options.scale.height!;
+                                    this.scale.naturalHeight = options.scale.height!;
+                                }
                             }
                         }));
                     }
