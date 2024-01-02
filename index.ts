@@ -109,8 +109,8 @@ class Camera{
 
         this.entityList = [];
         this.location = {
-            x:0,
-            y:0
+            x:gameScreen.width/2,
+            y:gameScreen.height/2
         }
         this.scale = {
             width:0,
@@ -264,6 +264,9 @@ class Game{
         return this.entities[this.entities.length-1];
     }
     addSprites(...sprites:Sprite[]){
+        for(let i = 0; i < sprites.length; i++){
+            sprites[i].parent = this;
+        }
         this.entities = this.entities.concat(sprites);
         this.camera.entityList = this.entities;
         return this.entities.slice(-sprites.length);
@@ -594,8 +597,8 @@ class Sprite{
                 y:this.location.y
             }
             if(this.parent!==undefined && typeof this.parent == 'object'){
-                loc.x = this.parent.camera.location.x+this.location.x;
-                loc.y = this.parent.camera.location.y+this.location.y;
+                loc.x = (this.parent.camera.location.x-(this.parent.camera.scale.width/2))+this.location.x;
+                loc.y = (this.parent.camera.location.y-(this.parent.camera.scale.height/2))+this.location.y;
             }
             if(this.type=="image"){
                 if(this.fullyLoaded == true){

@@ -144,11 +144,13 @@ gameScreen.background = "black";
 let isCollidingWithTerrain = false;
 let direction = { x: 0, y: 0 };
 let collisionSide = "";
+game.camera.location.y = gameScreen.height / 2;
 game.mainLoopFunctions.push(function () {
     let delta = game.timeData.delta;
     let slowSpeed = 1;
     let beforePos = player.location;
     let currentlyColliding = { x: false, y: false };
+    //game.camera.location.y = -player.location.y+(game.camera.scale.height)-(player.scale.height/2)+100;
     player.location.x += (player.speed.x * player.velocity.x * slowSpeed) * delta;
     if (player.velocity.y > 0) {
         player.location.y += (playerMovementData.fallSpeed * player.velocity.y) * delta;
@@ -156,6 +158,7 @@ game.mainLoopFunctions.push(function () {
     else {
         player.location.y += (player.speed.y * player.velocity.y) * delta;
     }
+    game.camera.location.x = -player.location.x + (game.camera.scale.width) - (player.scale.width / 2);
     for (let piece of terrain) {
         let colDetail = player.isCollidingWithDetail(piece);
         if (colDetail !== false) {
