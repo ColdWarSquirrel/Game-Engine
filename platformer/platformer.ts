@@ -3,55 +3,57 @@ gameScreen.resize(viewport.width-10,viewport.height-10);
 // @ts-ignore
 const game = new Game("Jumpy Jump Autistic");
 // @ts-ignore
-const player = game.addSprite(new Sprite({  
-    info:{
-        name:"player",
-        type:"image",
-        skins:[
-            {
-                name:"idleRight",
-                url:"sprites/right/idle1.png"
-            },
-            {
-                name:"idleLeft",
-                url:"sprites/left/idle1.png"
+const player = game.addSprite(new Sprite(
+    {  
+        info:{
+            name:"player",
+            type:"image",
+            skins:[
+                {
+                    name:"idleRight",
+                    url:"sprites/right/idle1.png"
+                },
+                {
+                    name:"idleLeft",
+                    url:"sprites/left/idle1.png"
+                }
+            ],
+            opacity:1,
+            speed:{
+                x:200,
+                y:250
             }
-        ],
-        opacity:1,
-        speed:{
-            x:200,
-            y:250
+        },
+        location:{
+            x:(gameScreen.width*0.5),
+            y:(gameScreen.height*0.5)
+        },
+        scale:{
+            width:"default",
+            height:"default"
         }
-    },
-    location:{
-        x:(gameScreen.width*0.5),
-        y:(gameScreen.height*0.5)
-    },
-    scale:{
-        width:"default",
-        height:"default"
-    }
-}, [
-    {
-        name:"movementData",
-        value:false,
-        direction:"none",
-        lastPos:0,
-        up:false,
-        down:false,
-        left:false,
-        right:false,
-        isJumping:false,
-        jumps:0,
-        isFalling:false,
-        fallSpeed:500
-    },
-    {
-        name:"skins",
-        idleLeft:null,
-        idleRight:null
-    }
-]));
+    }, [
+        {
+            name:"movementData",
+            value:false,
+            direction:"none",
+            lastPos:0,
+            up:false,
+            down:false,
+            left:false,
+            right:false,
+            isJumping:false,
+            jumps:0,
+            isFalling:false,
+            fallSpeed:500
+        },
+        {
+            name:"skins",
+            idleLeft:null,
+            idleRight:null
+        }
+    ]
+));
 let playerSkins = player.getProperty("skins");
 let playerMovementData = player.getProperty("movementData");
 interface basicSpriteParameters{
@@ -185,17 +187,20 @@ gameScreen.background = "black";
 let isCollidingWithTerrain = false;
 let direction = {x:0,y:0};
 let collisionSide:string|false = "";
+game.camera.location.y = gameScreen.height/2;
 game.mainLoopFunctions.push(function(){
     let delta = game.timeData.delta;
     let slowSpeed = 1;
     let beforePos = player.location;
     let currentlyColliding = {x:false,y:false};
+    //game.camera.location.y = -player.location.y+(game.camera.scale.height)-(player.scale.height/2)+100;
     player.location.x += (player.speed.x * player.velocity.x * slowSpeed) * delta;
     if(player.velocity.y > 0){
         player.location.y += (playerMovementData.fallSpeed * player.velocity.y) * delta;
     }else{
         player.location.y += (player.speed.y * player.velocity.y) * delta;
     }
+    game.camera.location.x = -player.location.x+(game.camera.scale.width)-(player.scale.width/2);
     for(let piece of terrain){
         let colDetail = player.isCollidingWithDetail(piece);
         if(colDetail!==false){

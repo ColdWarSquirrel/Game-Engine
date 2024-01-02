@@ -87,6 +87,89 @@ class GameScreen{
     }
 }
 let gameScreen:GameScreen = new GameScreen({width:700,height:700});
+interface cameraParameters{
+    scale?:{
+        width:number|string,
+        height:number|string,
+    },
+    location?:Vector,
+    name?:string,
+    entities?:Sprite[]|any[]
+}
+class Camera{
+    name: string;
+    scale:scale;
+    parent:any;
+    location:Vector;
+    entityList:Sprite[]|any[];
+    constructor(options:cameraParameters){
+        let width = options?.scale?.width ?? "full";
+        let height = options?.scale?.height ?? "full";
+        let name = options?.name ?? "Camera";
+        let entityList = options?.entities ?? [];
+        this.entityList = [];
+        this.location = {
+            x:gameScreen.width/2,
+            y:gameScreen.height/2
+        }
+        this.scale = {
+            width:0,
+            height:0
+        }
+        this.name = name;
+        if(entityList.length>0){
+            this.entityList = entityList;
+        };
+        if(typeof width !== 'string'){
+            this.scale.width = width;
+        }else{
+            this.scale.width = gameScreen.width;
+        };
+        if(typeof height !== 'string'){
+            this.scale.height = height;
+        }else{
+            this.scale.height = gameScreen.height;
+        };
+    };
+    giveParent(parent:any){
+        this.parent = parent;
+    }
+    isEntityVisible(sprite:Sprite){
+        let rect1:collisionRect = {
+            x: this.location.x,
+            y: this.location.y,
+            w: this.scale.width,
+            h: this.scale.height,
+        };
+        let rect2:collisionRect = {
+            x: sprite.location.x,
+            y: sprite.location.y,
+            w: sprite.scale.width,
+            h: sprite.scale.height,
+        };
+        if(sprite.type == "ball"){
+            rect2 = {
+                x: sprite.location.x-sprite.scale.radius,
+                y: sprite.location.y-sprite.scale.radius,
+                w: sprite.scale.radius*2,
+                h: sprite.scale.radius*2
+            };
+        };
+        if (rect1.x == rect1.w || rect1.y == rect1.h || rect2.w == rect2.x || rect2.y == rect2.h){
+            console.log("equal");
+            return false;
+        }
+        if (rect1.x > rect2.w || rect2.x > rect1.w) {
+            console.log("x");
+            return false;
+        }
+        if (rect1.h > rect2.y || rect2.h > rect1.y) {
+            console.log("y");
+            return false;
+        }
+        return true;
+    }
+}
 class Game{
     name: string;
     entities: Sprite[];
@@ -94,9 +177,10 @@ class Game{
     settings: {name:string,[key:string]:any}[];
     running: boolean;
     autopause: boolean;
-    timeData: { lastTime: number|undefined; delta: number; scale: number|undefined; };
+    timeData: { lastTime: number|undefined; delta: number;};
     keysDown: object|any;
     ctx: CanvasRenderingContext2D;
+    camera: Camera;
     constructor(name="Example Game", onstart=()=>{}){
         this.name = name;
         this.entities = [];
@@ -106,10 +190,21 @@ class Game{
         this.running = false;
         this.timeData = {
             lastTime:undefined,
-            delta:0,
-            scale:undefined
+            delta:0
         }
         this.ctx = <CanvasRenderingContext2D>document.querySelector('canvas')!.getContext('2d');
+        this.camera = new Camera({
+            scale:{
+                width:"full",
+                height:"full"
+            },
+            location:{
+                x:0,
+                y:0
+            },
+            name:"Main",
+            entities:this.entities
+        });
         this.keysDown = {};
         if(this.autopause){
             document.addEventListener("visibilitychange", () => {
@@ -167,10 +262,16 @@ class Game{
     }
     addSprite(sprite:Sprite){
         this.entities.push(sprite);
+        this.camera.entityList = this.entities;
+        this.entities[this.entities.length-1].parent = this;
         return this.entities[this.entities.length-1];
     }
     addSprites(...sprites:Sprite[]){
+        for(let i = 0; i < sprites.length; i++){
+            sprites[i].parent = this;
+        }
         this.entities = this.entities.concat(sprites);
+        this.camera.entityList = this.entities;
         return this.entities.slice(-sprites.length);
     }
     refreshSprite(sprite:Sprite){
@@ -295,6 +396,7 @@ interface collisionRect{
 }
 class Sprite{
     name: string;
+    parent:any;
     type: string;
     location: { x: number; y: number; z: number; };
     speed: { x: number; y: number; base: Vector; };
@@ -444,16 +546,6 @@ class Sprite{
             }
             if(options.info.type=="image"){
                 this.type = "image";
-                if('scale' in options){
-                    if(typeof options.scale.width!=="string"){
-                        this.scale.width = options.scale.width!;
-                        this.scale.naturalWidth = options.scale.width!;
-                    }
-                    if(typeof options.scale.height!=="string"){
-                        this.scale.height = options.scale.height!;
-                        this.scale.naturalHeight = options.scale.height!;
-                    }
-                }
                 if('skins' in options.info){
                     this.fullyLoaded = false;
                     for(let i = 0; i < options.info.skins!.length; i++){
@@ -462,13 +554,29 @@ class Sprite{
                             name:skin.name,
                             url:skin.url,
                             scale:{
-                                width:this.scale.width,
-                                height:this.scale.height
+                                width:options?.scale?.width ?? "default",
+                                height:options?.scale?.height ?? "default"
                             }
                         },()=>{
                             this.fullyLoaded = true;
                             if('anims' in options.info){
                                 this.animations = options.info.anims!;
+                            }
+                            if('scale' in options){
+                                if(typeof options.scale.width==="string"){
+                                    this.scale.width = this.skin.naturalWidth!;
+                                    this.scale.naturalWidth = this.skin.naturalWidth!;
+                                }else{
+                                    this.scale.width = options.scale.width!;
+                                    this.scale.naturalWidth = options.scale.width!;
+                                }
+                                if(typeof options.scale.height==="string"){
+                                    this.scale.height = this.skin.naturalHeight!;
+                                    this.scale.naturalHeight = this.skin.naturalHeight!;
+                                }else{
+                                    this.scale.height = options.scale.height!;
+                                    this.scale.naturalHeight = options.scale.height!;
+                                }
                             }
                         }));
                     }
@@ -493,28 +601,36 @@ class Sprite{
         if(this.hidden==false){ 
             gameScreen.ctx.save();
             gameScreen.ctx.globalAlpha = this.opacity;
+            let loc = {
+                x:this.location.x,
+                y:this.location.y
+            }
+            if(this.parent!==undefined && typeof this.parent == 'object'){
+                loc.x = (this.parent.camera.location.x-(this.parent.camera.scale.width/2))+this.location.x;
+                loc.y = (this.parent.camera.location.y-(this.parent.camera.scale.height/2))+this.location.y;
+            }
             if(this.type=="image"){
                 if(this.fullyLoaded == true){
-                    gameScreen.ctx.drawImage(this.skin, this.location.x, this.location.y, this.skin.width, this.skin.height);
+                    gameScreen.ctx.drawImage(this.skin, loc.x, loc.y, this.skin.width, this.skin.height);
                 }
             }else if(this.type=="box"){
                 gameScreen.ctx.beginPath();
                 gameScreen.ctx.fillStyle = this.colour.fill;
                 gameScreen.ctx.strokeStyle = this.colour.stroke;
                 if(this.fillMode == "fill"){
-                    gameScreen.ctx.fillRect(this.location.x, this.location.y, this.scale.width, this.scale.height);
+                    gameScreen.ctx.fillRect(loc.x, loc.y, this.scale.width, this.scale.height);
                 }
-                gameScreen.ctx.rect(this.location.x, this.location.y, this.scale.width, this.scale.height);
+                gameScreen.ctx.rect(loc.x, loc.y, this.scale.width, this.scale.height);
                 gameScreen.ctx.stroke();
             }else if(this.type=="ball"){
                 gameScreen.ctx.beginPath();
                 gameScreen.ctx.strokeStyle = this.colour.fill;
                 gameScreen.ctx.strokeStyle = this.colour.stroke;
-                gameScreen.ctx.arc(this.location.x,this.location.y,this.scale.radius,0,Math.PI*2);
+                gameScreen.ctx.arc(loc.x,loc.y,this.scale.radius,0,Math.PI*2);
                 if(this.fillMode == "fill"){
                     gameScreen.ctx.fill();
                     gameScreen.ctx.beginPath();
-                    gameScreen.ctx.arc(this.location.x,this.location.y,this.scale.radius,0,Math.PI*2);
+                    gameScreen.ctx.arc(loc.x,loc.y,this.scale.radius,0,Math.PI*2);
                     gameScreen.ctx.stroke();
                 }else{
                     gameScreen.ctx.stroke();
@@ -833,6 +949,9 @@ class Anim{
                 this.parent.skin = this.frames[this.currentFrame].sprite;
             }
         }
+    }
+    isPlaying(){
+        return !this.paused;
     }
     pause(){
         this.paused = true;

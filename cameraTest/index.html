@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Camera Test</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body,html{
+                margin:0;
+                text-align:center;
+            }
+            .main{
+                padding:0;
+                max-width:99vw;
+                max-height:99vh;
+                width:fit-content;
+                height:fit-content;
+                border:1px black solid;
+                position: absolute; 
+                left: 0; 
+                right: 0; 
+                margin-left: auto; 
+                margin-right: auto;
+                overflow: hidden;
+            }
+            canvas{
+                cursor: default;
+                border:1px solid black;
+                margin-top:5px;
+            }
+            #outputlog{
+                margin-left:auto;
+                margin-right:auto;
+                display:inline-block;
+                height:200px;
+                width:100%;
+                padding-right: 17px;
+                overflow-y:scroll;
+                box-sizing: content-box;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="gameScreen_Main"></canvas>
+        <script src="../index.js"></script>
+        <script>
+            "use strict";
+            const game = new Game("Camera Test");
+            const playerFrames = [
+                {
+                    name:"0",
+                    url:"sprites/0.gif"
+                },
+                {
+                    name:"1",
+                    url:"sprites/1.gif"
+                },
+                {
+                    name:"2",
+                    url:"sprites/2.gif"
+                },
+                {
+                    name:"3",
+                    url:"sprites/3.gif"
+                },
+                {
+                    name:"4",
+                    url:"sprites/4.gif"
+                },
+                {
+                    name:"5",
+                    url:"sprites/5.gif"
+                }
+            ];
+            const player = game.addSprite(new Sprite({
+                info:{
+                    name:"player",
+                    type:"image",
+                    skins:[playerFrames[0]]
+                },
+                location:{
+                    x:(gameScreen.width*0.5)-250,
+                    y:(gameScreen.height*0.5)-250
+                },
+                scale:{
+                    width:500,
+                    height:500
+                }
+            }));
+            player.animations = [new Anim({
+                parent:player,
+                fps:10,
+                frames:playerFrames
+            })];
+            let playerSkins = player.getProperty("skins");
+            let rand = Math.random();
+            let keysDown = {};
+            game.mainLoopFunctions.push(function(){
+            })
+            game.play();
+        </script>
+    </body>
+</html>
