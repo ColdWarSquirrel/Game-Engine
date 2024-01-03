@@ -55,12 +55,14 @@ const player = game.addSprite(new Sprite({
 let playerMovementData = player.getProperty("movementData");
 class Floor extends Sprite {
     constructor(options) {
+        var _a, _b;
         let colour = {
             fill: "darkgreen",
             stroke: "lime"
         };
+        let name = (_b = (_a = options === null || options === void 0 ? void 0 : options.info) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : "floor";
         options.info = {
-            name: "platform",
+            name: name,
             type: "box",
             tags: ["terrain"],
             colour: colour
@@ -70,8 +72,10 @@ class Floor extends Sprite {
 }
 class Coin extends Sprite {
     constructor(options) {
+        var _a, _b;
+        let name = (_b = (_a = options === null || options === void 0 ? void 0 : options.info) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : "floor";
         options.info = {
-            name: "coin",
+            name: name,
             type: "image",
             tags: ["collectible"],
             skins: [
@@ -109,6 +113,9 @@ let coins = game.addSprites(new Coin({
 let roomWidth = 1;
 let roofPos = -191;
 let terrain = game.addSprites(new Floor({
+    info: {
+        name: "floor"
+    },
     location: {
         x: 0,
         y: (gameScreen.height - 40),
@@ -119,6 +126,9 @@ let terrain = game.addSprites(new Floor({
         height: 40
     }
 }), new Floor({
+    info: {
+        name: "ceiling"
+    },
     location: {
         x: 0,
         y: roofPos,
@@ -129,6 +139,9 @@ let terrain = game.addSprites(new Floor({
         height: 40
     }
 }), new Floor({
+    info: {
+        name: "left wall"
+    },
     location: {
         x: 0,
         y: roofPos,
@@ -139,6 +152,9 @@ let terrain = game.addSprites(new Floor({
         height: gameScreen.height - roofPos
     }
 }), new Floor({
+    info: {
+        name: "right wall"
+    },
     location: {
         x: (gameScreen.width * roomWidth),
         y: roofPos,
@@ -149,6 +165,9 @@ let terrain = game.addSprites(new Floor({
         height: gameScreen.height - roofPos
     }
 }), new Floor({
+    info: {
+        name: "platform 1"
+    },
     location: {
         x: 235,
         y: (roofPos + 250),
@@ -167,6 +186,15 @@ let isCollidingWithTerrain = false;
 let direction = { x: 0, y: 0 };
 let collisionSide = "";
 let cameraDrag = 0.9;
+const spawnPos = {
+    x: gameScreen.width / 2,
+    y: terrain[0].location.y - player.scale.height - 5
+};
+function respawnPlayer() {
+    player.location.x = spawnPos.x;
+    player.location.y = spawnPos.y;
+}
+respawnPlayer();
 game.camera.location.y = gameScreen.height / 2;
 game.mainLoopFunctions.push(function () {
     let delta = game.timeData.delta;
@@ -248,8 +276,7 @@ game.mainLoopFunctions.push(function () {
             player.velocity.y += player.velocity.y < 1.5 ? delta : 0;
         }
         else {
-            player.location.y = gameScreen.height / 2;
-            player.location.x = gameScreen.width / 2;
+            respawnPlayer();
         }
     }
     if (currentlyColliding.x == false && currentlyColliding.y == false) {

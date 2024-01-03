@@ -94,8 +94,9 @@ class Floor extends Sprite{
             fill:"darkgreen",
             stroke:"lime"
         }
+        let name = options?.info?.name ?? "floor";
         options.info = {
-            name:"platform",
+            name:name,
             type:"box",
             tags:["terrain"],
             colour:colour
@@ -106,8 +107,9 @@ class Floor extends Sprite{
 }
 class Coin extends Sprite{
     constructor(options:basicSpriteParameters){
+        let name = options?.info?.name ?? "floor";
         options.info = {
-            name:"coin",
+            name:name,
             type:"image",
             tags:["collectible"],
             skins:[
@@ -150,6 +152,9 @@ let roomWidth = 1;
 let roofPos = -191;
 let terrain = game.addSprites(
     new Floor({ // floor
+        info:{
+            name:"floor"
+        },
         location:{
             x:0,
             y:(gameScreen.height-40),
@@ -161,6 +166,9 @@ let terrain = game.addSprites(
         }
     }),
     new Floor({ // ceiling
+        info:{
+            name:"ceiling"
+        },
         location:{
             x:0,
             y:roofPos,
@@ -172,6 +180,9 @@ let terrain = game.addSprites(
         }
     }),
     new Floor({ // left wall
+        info:{
+            name:"left wall"
+        },
         location:{
             x:0,
             y:roofPos,
@@ -183,6 +194,9 @@ let terrain = game.addSprites(
         }
     }),
     new Floor({ // right wall
+        info:{
+            name:"right wall"
+        },
         location:{
             x:(gameScreen.width*roomWidth),
             y:roofPos,
@@ -194,6 +208,9 @@ let terrain = game.addSprites(
         }
     }),
     new Floor({ // platform
+        info:{
+            name:"platform 1"
+        },
         location:{
             x:235,
             y:(roofPos+250),
@@ -213,6 +230,15 @@ let isCollidingWithTerrain = false;
 let direction = {x:0,y:0};
 let collisionSide:string|false = "";
 let cameraDrag = 0.9;
+const spawnPos = {
+    x:gameScreen.width/2,
+    y:terrain[0].location.y-player.scale.height-5
+}
+function respawnPlayer(){
+    player.location.x = spawnPos.x;
+    player.location.y = spawnPos.y;
+}
+respawnPlayer();
 game.camera.location.y = gameScreen.height/2;
 game.mainLoopFunctions.push(
     function(){ // main sprite stuff n stuff
@@ -288,8 +314,7 @@ game.mainLoopFunctions.push(
             if(player.location.y+<number>player.scale.height+((playerMovementData.fallSpeed*player.velocity.y)*delta)<gameScreen.height){
                 player.velocity.y += player.velocity.y < 1.5 ? delta : 0;
             }else{
-                player.location.y = gameScreen.height/2;
-                player.location.x = gameScreen.width/2;
+                respawnPlayer();
             }
         }
         if(currentlyColliding.x==false&&currentlyColliding.y==false){
