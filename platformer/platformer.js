@@ -106,30 +106,52 @@ let coins = game.addSprites(new Coin({
         y: (gameScreen.height - 30) - 60
     }
 }));
+let roomWidth = 1;
+let roofPos = -191;
 let terrain = game.addSprites(new Floor({
     location: {
         x: 0,
-        y: (gameScreen.height - 30),
+        y: (gameScreen.height - 40),
         z: -1
     },
     scale: {
-        width: gameScreen.width,
+        width: gameScreen.width * roomWidth,
         height: 40
     }
 }), new Floor({
     location: {
-        x: 270,
-        y: (gameScreen.height - 650),
+        x: 0,
+        y: roofPos,
         z: -1
     },
     scale: {
-        width: 25,
-        height: 500
+        width: gameScreen.width * roomWidth,
+        height: 40
     }
 }), new Floor({
     location: {
-        x: 25,
-        y: (gameScreen.height - 650),
+        x: 0,
+        y: roofPos,
+        z: -1
+    },
+    scale: {
+        width: 40,
+        height: gameScreen.height - roofPos
+    }
+}), new Floor({
+    location: {
+        x: (gameScreen.width * roomWidth),
+        y: roofPos,
+        z: -1
+    },
+    scale: {
+        width: 40,
+        height: gameScreen.height - roofPos
+    }
+}), new Floor({
+    location: {
+        x: 235,
+        y: (gameScreen.height - 700),
         z: -1
     },
     scale: {
@@ -159,6 +181,7 @@ game.mainLoopFunctions.push(function () {
         player.location.y += (player.speed.y * player.velocity.y) * delta;
     }
     game.camera.location.x = -player.location.x + (game.camera.scale.width) - (player.scale.width / 2);
+    game.camera.location.y = (gameScreen.height * 0.5) - (player.location.y / 5);
     for (let piece of terrain) {
         let colDetail = player.isCollidingWithDetail(piece);
         if (colDetail !== false) {

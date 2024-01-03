@@ -145,39 +145,63 @@ let coins = game.addSprites(
         }
     })
 );
+let roomWidth = 1;
+let roofPos = -191;
 let terrain = game.addSprites(
-    new Floor({
+    new Floor({ // floor
         location:{
             x:0,
-            y:(gameScreen.height-30),
+            y:(gameScreen.height-40),
             z:-1
         },
         scale:{
-            width:gameScreen.width,
+            width:gameScreen.width*roomWidth,
             height:40
         }
     }),
-    new Floor({
+    new Floor({ // ceiling
         location:{
-            x:270,
-            y:(gameScreen.height-650),
+            x:0,
+            y:roofPos,
+            z:-1
+        },
+        scale:{
+            width:gameScreen.width*roomWidth,
+            height:40
+        }
+    }),
+    new Floor({ // left wall
+        location:{
+            x:0,
+            y:roofPos,
+            z:-1
+        },
+        scale:{
+            width:40,
+            height:gameScreen.height-roofPos
+        }
+    }),
+    new Floor({ // right wall
+        location:{
+            x:(gameScreen.width*roomWidth),
+            y:roofPos,
+            z:-1
+        },
+        scale:{
+            width:40,
+            height:gameScreen.height-roofPos
+        }
+    }),
+    new Floor({ // platform
+        location:{
+            x:235,
+            y:(gameScreen.height-700),
             z:-1
         },
         scale:{
             width:25,
             height:500
         }
-    }),
-    new Floor({
-        location:{
-            x:25,
-            y:(gameScreen.height-650),
-            z:-1
-        },
-        scale:{
-            width:25,
-            height:500
-        }   
     })
 );
 let stopAt = 0.05;
@@ -201,6 +225,7 @@ game.mainLoopFunctions.push(function(){
         player.location.y += (player.speed.y * player.velocity.y) * delta;
     }
     game.camera.location.x = -player.location.x+(game.camera.scale.width)-(player.scale.width/2);
+    game.camera.location.y = (gameScreen.height*0.5)-(player.location.y/5);
     for(let piece of terrain){
         let colDetail = player.isCollidingWithDetail(piece);
         if(colDetail!==false){
