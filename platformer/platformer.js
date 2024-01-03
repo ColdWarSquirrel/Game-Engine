@@ -90,6 +90,7 @@ class Coin extends Sprite {
         super(options);
     }
 }
+let collectedCoins = 0;
 let coins = game.addSprites(new Coin({
     location: {
         x: (gameScreen.width * 0.5) + 100,
@@ -182,6 +183,16 @@ game.mainLoopFunctions.push(function () {
     }
     game.camera.location.x = -player.location.x + (game.camera.scale.width) - (player.scale.width / 2);
     game.camera.location.y = (gameScreen.height * 0.5) - (player.location.y / 5);
+    for (let i = 0; i < coins.length; i++) {
+        let coin = coins[i];
+        let colDetail = player.isCollidingWithDetail(coin);
+        if (colDetail !== false) {
+            collectedCoins += 1;
+            game.removeSprite(coin);
+            coins.splice(i, 1);
+            console.log("+1");
+        }
+    }
     for (let piece of terrain) {
         let colDetail = player.isCollidingWithDetail(piece);
         if (colDetail !== false) {
