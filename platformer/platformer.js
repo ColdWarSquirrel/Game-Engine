@@ -92,17 +92,17 @@ class Coin extends Sprite {
 let collectedCoins = 0;
 let coins = game.addSprites(new Coin({
     location: {
-        x: (gameScreen.width * 0.5) + 100,
+        x: 1000,
         y: (gameScreen.height - 30) - 60
     }
 }), new Coin({
     location: {
-        x: (gameScreen.width * 0.5) + 150,
+        x: 1050,
         y: (gameScreen.height - 30) - 60
     }
 }), new Coin({
     location: {
-        x: (gameScreen.width * 0.5) + 200,
+        x: 1100,
         y: (gameScreen.height - 30) - 60
     }
 }));
@@ -115,7 +115,7 @@ let terrain = game.addSprites(new Floor({
         z: -1
     },
     scale: {
-        width: gameScreen.width * roomWidth,
+        width: 1880 * roomWidth,
         height: 40
     }
 }), new Floor({
@@ -125,7 +125,7 @@ let terrain = game.addSprites(new Floor({
         z: -1
     },
     scale: {
-        width: gameScreen.width * roomWidth,
+        width: 1880 * roomWidth,
         height: 40
     }
 }), new Floor({
@@ -136,27 +136,27 @@ let terrain = game.addSprites(new Floor({
     },
     scale: {
         width: 40,
-        height: gameScreen.height - roofPos
+        height: 1040 - roofPos / 2
     }
 }), new Floor({
     location: {
-        x: (gameScreen.width * roomWidth),
+        x: (1880 * roomWidth),
         y: roofPos,
         z: -1
     },
     scale: {
         width: 40,
-        height: gameScreen.height - roofPos
+        height: 1040 - roofPos / 2
     }
 }), new Floor({
     location: {
         x: 235,
-        y: (gameScreen.height - 700),
+        y: (roofPos + 250),
         z: -1
     },
     scale: {
         width: 25,
-        height: 500
+        height: 1040 - roofPos - 550
     }
 }));
 let stopAt = 0.05;
