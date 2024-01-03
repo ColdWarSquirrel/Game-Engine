@@ -1,7 +1,7 @@
 "use strict";
 gameScreen.resize(viewport.width-10,viewport.height-10);
 // @ts-ignore
-const game = new Game("Jumpy Jump Autistic",{refreshType:1,fps:165});
+const game = new Game("Jumpy Jump Autistic",{refreshType:0,fps:60});
 // @ts-ignore
 const player = game.addSprite(new Sprite(
     {  

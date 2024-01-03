@@ -157,7 +157,9 @@ class Game {
         this.running = false;
         this.timeData = {
             lastTime: undefined,
-            delta: 0
+            delta: 0,
+            totalFrames: 0,
+            fpsArray: []
         };
         this.fps = 60;
         this.refreshType = 0;
@@ -216,7 +218,9 @@ class Game {
         if ('fps' in options) {
             this.fps = options.fps;
         }
-        if (this.refreshType == 0) { // requestAnimationFrame
+        if (this.refreshType == 0) {
+            // requestAnimationFrame gives a parameter that is the time since [time origin](https://developer.mozilla.org/en-US/docs/Web/API/Performance/timeOrigin#value)
+            // (the time at which the browser context was created)
             requestAnimationFrame((now) => { this.mainGameLoop(now); });
         }
         else if (this.refreshType == 1) {
@@ -225,16 +229,21 @@ class Game {
         else {
             requestAnimationFrame((now) => { this.mainGameLoop(now); });
         }
-        // requestAnimationFrame gives a parameter that is the time since [time origin](https://developer.mozilla.org/en-US/docs/Web/API/Performance/timeOrigin#value)
-        // (the time at which the browser context was created)
     }
     mainGameLoop(now) {
+        this.timeData.totalFrames += 1;
         if (this.timeData.lastTime == undefined) {
             this.timeData.lastTime = now;
         }
         // capping delta at 0.35 seconds, to prevent massive snapping to other sides of the screen
         this.timeData.delta = (now - this.timeData.lastTime > 1000 / 30) ? 1 / 30 : (now - this.timeData.lastTime) / 1000;
         this.timeData.lastTime = now;
+        if (this.timeData.lastTime % 10000 < (this.timeData.delta * 1000) * 2) { // clears the fps array every 10 seconds with a time gap of the current delta x2
+            console.log(this.timeData.lastTime);
+            this.clearFpsArray();
+        }
+        ;
+        this.timeData.fpsArray.push(1 / this.timeData.delta);
         // also keeping delta outside of game pausing, because otherwise `now` would keep increasing and `lastTime` would stay the same, resulting in there being one frame of
         // massive "lag" every time the game is paused for any length of time
         // also redrawing entities every frame in case of any visual changes while paused
@@ -247,6 +256,21 @@ class Game {
         if (this.refreshType == 0) {
             requestAnimationFrame((now) => { this.mainGameLoop(now); });
         }
+    }
+    calculateAverageFps() {
+        let avFps = 0;
+        let len = this.timeData.fpsArray.length;
+        for (let i = len; i > 0; i--) {
+            if (this.timeData.fpsArray[i] == Infinity || this.timeData.fpsArray[i] == undefined)
+                continue;
+            avFps += this.timeData.fpsArray[i];
+        }
+        ;
+        this.clearFpsArray();
+        return avFps / len;
+    }
+    clearFpsArray() {
+        this.timeData.fpsArray = [];
     }
     addSprite(sprite) {
         this.entities.push(sprite);
