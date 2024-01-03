@@ -397,7 +397,8 @@ class Sprite {
         this.location = {
             x: 0,
             y: 0,
-            z: 0
+            z: 0,
+            static: false
         };
         this.speed = {
             x: 10,
@@ -461,6 +462,9 @@ class Sprite {
             }
             if ('z' in options.location) {
                 this.location.z = options.location.z;
+            }
+            if ('static' in options.location) {
+                this.location.static = options.location.static;
             }
         }
         if ('speed' in options.info) {
@@ -585,8 +589,10 @@ class Sprite {
                 y: this.location.y
             };
             if (this.parent !== undefined && typeof this.parent == 'object') {
-                loc.x = (this.parent.camera.location.x - (this.parent.camera.scale.width / 2)) + this.location.x;
-                loc.y = (this.parent.camera.location.y - (this.parent.camera.scale.height / 2)) + this.location.y;
+                if (this.location.static == false) {
+                    loc.x = (this.parent.camera.location.x - (this.parent.camera.scale.width / 2)) + this.location.x;
+                    loc.y = (this.parent.camera.location.y - (this.parent.camera.scale.height / 2)) + this.location.y;
+                }
             }
             if (this.type == "image") {
                 if (this.fullyLoaded == true) {
@@ -728,18 +734,28 @@ class Sprite {
             return false;
         }
     }
-    collisionDetail(sprite, iscol = false) {
+    collisionDetail(sprite, iscol = false, delta) {
         let margin = 15;
-        if (this.location.y <= sprite.location.y + sprite.scale.height && this.location.y >= sprite.location.y + sprite.scale.height - margin) { // bottom
+        let verticalMargin;
+        let horizontalMargin;
+        /*if(delta===undefined){
+            verticalMargin = sprite.scale.height*0.25>30?30:sprite.scale.height*0.25;
+            horizontalMargin = sprite.scale.width*0.25>30?30:sprite.scale.width*0.25;
+        }else{
+            verticalMargin = (this.speed.y*this.velocity.y)*delta;
+            horizontalMargin = (this.speed.x*this.velocity.x)*delta;
+        }*/
+        horizontalMargin = verticalMargin = margin;
+        if (this.location.y <= sprite.location.y + sprite.scale.height && this.location.y >= sprite.location.y + sprite.scale.height - verticalMargin) { // bottom
             return "bottom";
         }
-        else if (this.location.y + this.scale.height >= sprite.location.y && this.location.y + this.scale.height <= sprite.location.y + margin) { // top
+        else if (this.location.y + this.scale.height >= sprite.location.y && this.location.y + this.scale.height <= sprite.location.y + verticalMargin) { // top
             return "top";
         }
-        else if (this.location.x + this.scale.width >= sprite.location.x && this.location.x + this.scale.width <= sprite.location.x + margin) { // left
+        else if (this.location.x + this.scale.width >= sprite.location.x && this.location.x + this.scale.width <= sprite.location.x + horizontalMargin) { // left
             return "left";
         }
-        else if (this.location.x <= sprite.location.x + sprite.scale.width && this.location.x >= sprite.location.x + sprite.scale.width - margin) { // right
+        else if (this.location.x <= sprite.location.x + sprite.scale.width && this.location.x >= sprite.location.x + sprite.scale.width - horizontalMargin) { // right
             return "right";
         }
         else { // inside
@@ -751,9 +767,13 @@ class Sprite {
             }
         }
     }
-    isCollidingWithDetail(sprite) {
+    isCollidingWithDetail(sprite, delta) {
+        let d = undefined;
+        if (delta) {
+            d = delta;
+        }
         if (this.isColliding(sprite)) {
-            let colDetail = this.collisionDetail(sprite, true);
+            let colDetail = this.collisionDetail(sprite, true, d);
             return {
                 side: colDetail,
                 colliding: true
