@@ -52,7 +52,6 @@ const player = game.addSprite(new Sprite({
         idleRight: null
     }
 ]));
-let playerSkins = player.getProperty("skins");
 let playerMovementData = player.getProperty("movementData");
 class Floor extends Sprite {
     constructor(options) {
@@ -181,11 +180,9 @@ game.mainLoopFunctions.push(function () {
     else {
         player.location.y += (player.speed.y * player.velocity.y) * delta;
     }
-    game.camera.location.x = -player.location.x + (game.camera.scale.width) - (player.scale.width / 2);
-    game.camera.location.y = (gameScreen.height * 0.5) - (player.location.y / 5);
     for (let i = 0; i < coins.length; i++) {
         let coin = coins[i];
-        let colDetail = player.isCollidingWithDetail(coin);
+        let colDetail = player.isCollidingWithDetail(coin, delta);
         if (colDetail !== false) {
             collectedCoins += 1;
             game.removeSprite(coin);
@@ -194,7 +191,7 @@ game.mainLoopFunctions.push(function () {
         }
     }
     for (let piece of terrain) {
-        let colDetail = player.isCollidingWithDetail(piece);
+        let colDetail = player.isCollidingWithDetail(piece, delta);
         if (colDetail !== false) {
             isCollidingWithTerrain = true;
             collisionSide = colDetail.side;
@@ -276,7 +273,7 @@ game.mainLoopFunctions.push(function () {
     if (game.keysDown.KeyW) {
         if (playerMovementData.jumps < 2) {
             playerMovementData.jumps += 1;
-            player.speed.y += 25;
+            player.speed.y += player.speed.y >= 300 ? 0 : 25;
             player.velocity.y = -1;
             if (collisionSide == "right") {
                 if (!game.keysDown.KeyA) {
@@ -319,5 +316,37 @@ game.mainLoopFunctions.push(function () {
     else {
         direction.x = 0;
     }
+}, function () {
+    let destination = {
+        x: -player.location.x + (game.camera.scale.width) - (player.scale.width / 2),
+        y: (gameScreen.height) - (player.location.y * 0.9)
+    };
+    let diff = {
+        x: destination.x - game.camera.location.x,
+        y: destination.y - game.camera.location.y,
+    };
+    let distance = Math.sqrt((diff.x ** 2) + (diff.y ** 2));
+    let maxDiff = 1;
+    if (diff.x <= maxDiff && diff.x >= -maxDiff) {
+        diff.x = 0;
+    }
+    if (diff.y <= maxDiff && diff.y >= -maxDiff) {
+        diff.y = 0;
+    }
+    let drag = 0.5;
+    if (diff.x < 0) {
+        diff.x += drag;
+    }
+    else if (diff.x > 0) {
+        diff.x -= drag;
+    }
+    if (diff.y < 0) {
+        diff.y += drag;
+    }
+    else if (diff.y > 0) {
+        diff.y -= drag;
+    }
+    game.camera.location.x += drag * (diff.x / 10);
+    game.camera.location.y += drag * (diff.y / 10);
 });
 game.play(); // :3

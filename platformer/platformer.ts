@@ -54,7 +54,6 @@ const player = game.addSprite(new Sprite(
         }
     ]
 ));
-let playerSkins = player.getProperty("skins");
 let playerMovementData = player.getProperty("movementData");
 interface basicSpriteParameters{
     info?:{
@@ -81,7 +80,8 @@ interface basicSpriteParameters{
     location:{
         x:number,
         y:number,
-        z?:number
+        z?:number,
+        static?:boolean
     }, 
     scale?:{
         width:number|string,
@@ -213,140 +213,170 @@ let isCollidingWithTerrain = false;
 let direction = {x:0,y:0};
 let collisionSide:string|false = "";
 game.camera.location.y = gameScreen.height/2;
-game.mainLoopFunctions.push(function(){
-    let delta = game.timeData.delta;
-    let slowSpeed = 1;
-    let beforePos = player.location;
-    let currentlyColliding = {x:false,y:false};
-    //game.camera.location.y = -player.location.y+(game.camera.scale.height)-(player.scale.height/2)+100;
-    player.location.x += (player.speed.x * player.velocity.x * slowSpeed) * delta;
-    if(player.velocity.y > 0){
-        player.location.y += (playerMovementData.fallSpeed * player.velocity.y) * delta;
-    }else{
-        player.location.y += (player.speed.y * player.velocity.y) * delta;
-    }
-    game.camera.location.x = -player.location.x+(game.camera.scale.width)-(player.scale.width/2);
-    game.camera.location.y = (gameScreen.height*0.5)-(player.location.y/5);
-    for(let i = 0; i < coins.length; i++){
-        let coin = coins[i];
-        let colDetail = player.isCollidingWithDetail(coin);
-        if(colDetail!==false){
-            collectedCoins+=1;
-            game.removeSprite(coin);
-            coins.splice(i,1);
-            console.log("+1");
+game.mainLoopFunctions.push(
+    function(){
+        let delta = game.timeData.delta;
+        let slowSpeed = 1;
+        let beforePos = player.location;
+        let currentlyColliding = {x:false,y:false};
+        //game.camera.location.y = -player.location.y+(game.camera.scale.height)-(player.scale.height/2)+100;
+        player.location.x += (player.speed.x * player.velocity.x * slowSpeed) * delta;
+        if(player.velocity.y > 0){
+            player.location.y += (playerMovementData.fallSpeed * player.velocity.y) * delta;
+        }else{
+            player.location.y += (player.speed.y * player.velocity.y) * delta;
         }
-    }
-    for(let piece of terrain){
-        let colDetail = player.isCollidingWithDetail(piece);
-        if(colDetail!==false){
-            isCollidingWithTerrain = true;
-            collisionSide = colDetail.side;
-            if(colDetail.side=="bottom"){
-                currentlyColliding.y = true;
-                if(direction.y==1){
-                    player.location.y = piece.location.y + <number>piece.scale.height + (player.speed.y * delta);
-                    player.velocity.y = 0;
-                }
-            }else if(colDetail.side=="top"){
-                currentlyColliding.y = true;
-                if(direction.y == -1){
-                    player.velocity.y = 0;
-                    player.location.y = piece.location.y-<number>player.scale.height;
-                }else if(direction.y == 1){
-                    player.velocity.x *= 0.5;
-                }
-                
-                player.speed.y = player.speed.base.y;
-                playerMovementData.jumps = 0;
-                playerMovementData.jumping = false;
-                playerMovementData.falling = false;
-            }else if(colDetail.side=="left"){
-                // left of terrain
-                currentlyColliding.x = true;
-                player.location.x = piece.location.x - <number>player.scale.width;
-            }else if(colDetail.side=="right"){
-                // right of terrain
-                currentlyColliding.x = true;
-                player.location.x = piece.location.x + <number>piece.scale.width;
-            }else if(colDetail.side=="inside"){
-                player.speed.y = player.speed.base.y;
-                player.location.y = piece.location.y-<number>player.scale.height;
-            }else{
-                console.log("idk");
+        for(let i = 0; i < coins.length; i++){
+            let coin = coins[i];
+            let colDetail = player.isCollidingWithDetail(coin,delta);
+            if(colDetail!==false){
+                collectedCoins+=1;
+                game.removeSprite(coin);
+                coins.splice(i,1);
+                console.log("+1");
             }
-            if(currentlyColliding.x==true){
-                playerMovementData.jumps = 0;
+        }
+        for(let piece of terrain){
+            let colDetail = player.isCollidingWithDetail(piece,delta);
+            if(colDetail!==false){
+                isCollidingWithTerrain = true;
+                collisionSide = colDetail.side;
+                if(colDetail.side=="bottom"){
+                    currentlyColliding.y = true;
+                    if(direction.y==1){
+                        player.location.y = piece.location.y + <number>piece.scale.height + (player.speed.y * delta);
+                        player.velocity.y = 0;
+                    }
+                }else if(colDetail.side=="top"){
+                    currentlyColliding.y = true;
+                    if(direction.y == -1){
+                        player.velocity.y = 0;
+                        player.location.y = piece.location.y-<number>player.scale.height;
+                    }else if(direction.y == 1){
+                        player.velocity.x *= 0.5;
+                    }
+                    
+                    player.speed.y = player.speed.base.y;
+                    playerMovementData.jumps = 0;
+                    playerMovementData.jumping = false;
+                    playerMovementData.falling = false;
+                }else if(colDetail.side=="left"){
+                    // left of terrain
+                    currentlyColliding.x = true;
+                    player.location.x = piece.location.x - <number>player.scale.width;
+                }else if(colDetail.side=="right"){
+                    // right of terrain
+                    currentlyColliding.x = true;
+                    player.location.x = piece.location.x + <number>piece.scale.width;
+                }else if(colDetail.side=="inside"){
+                    player.speed.y = player.speed.base.y;
+                    player.location.y = piece.location.y-<number>player.scale.height;
+                }else{
+                    console.log("idk");
+                }
+                if(currentlyColliding.x==true){
+                    playerMovementData.jumps = 0;
+                    player.velocity.x = 0;
+                }
+            }
+        }
+        if(!isCollidingWithTerrain){
+            collisionSide = "";
+        }
+        if(currentlyColliding.y==false){
+            if(player.location.y+<number>player.scale.height+((playerMovementData.fallSpeed*player.velocity.y)*delta)<gameScreen.height){
+                player.velocity.y += player.velocity.y < 1.5 ? delta : 0;
+            }else{
+                player.location.y = gameScreen.height/2;
+                player.location.x = gameScreen.width/2;
+            }
+        }
+        if(currentlyColliding.x==false&&currentlyColliding.y==false){
+            isCollidingWithTerrain=false;
+        }
+        if((!(game.keysDown.KeyD && game.keysDown.KeyA) || (game.keysDown.KeyD && game.keysDown.KeyA)) && player.velocity.x !== 0){
+            player.velocity.x += player.velocity.x > 0 ? -1 * (delta*2) : 1 * (delta*2);
+            if((player.velocity.x < stopAt && player.velocity.x > 0) || (player.velocity.x > -stopAt && player.velocity.x < 0)){
                 player.velocity.x = 0;
             }
         }
-    }
-    if(!isCollidingWithTerrain){
-        collisionSide = "";
-    }
-    if(currentlyColliding.y==false){
-        if(player.location.y+<number>player.scale.height+((playerMovementData.fallSpeed*player.velocity.y)*delta)<gameScreen.height){
-            player.velocity.y += player.velocity.y < 1.5 ? delta : 0;
-        }else{
-            player.location.y = gameScreen.height/2;
-            player.location.x = gameScreen.width/2;
+        if(game.keysDown.KeyD){
+            if(!game.keysDown.KeyA) player.switchSkin('idleRight');
+            player.velocity.x += (player.velocity.x<1) ? 10*delta : 0;
         }
-    }
-    if(currentlyColliding.x==false&&currentlyColliding.y==false){
-        isCollidingWithTerrain=false;
-    }
-    if((!(game.keysDown.KeyD && game.keysDown.KeyA) || (game.keysDown.KeyD && game.keysDown.KeyA)) && player.velocity.x !== 0){
-        player.velocity.x += player.velocity.x > 0 ? -1 * (delta*2) : 1 * (delta*2);
-        if((player.velocity.x < stopAt && player.velocity.x > 0) || (player.velocity.x > -stopAt && player.velocity.x < 0)){
-            player.velocity.x = 0;
+        if(game.keysDown.KeyA){
+            if(!game.keysDown.KeyD) player.switchSkin('idleLeft');
+            player.velocity.x += (player.velocity.x>-1) ? -10*delta : 0;
         }
-    }
-    if(game.keysDown.KeyD){
-        if(!game.keysDown.KeyA) player.switchSkin('idleRight');
-        player.velocity.x += (player.velocity.x<1) ? 10*delta : 0;
-    }
-    if(game.keysDown.KeyA){
-        if(!game.keysDown.KeyD) player.switchSkin('idleLeft');
-        player.velocity.x += (player.velocity.x>-1) ? -10*delta : 0;
-    }
-    if(game.keysDown.KeyW){
-        if(playerMovementData.jumps<2){
-            playerMovementData.jumps+=1;
-            player.speed.y+=25;
-            player.velocity.y = -1;
-            if(collisionSide=="right"){
-                if(!game.keysDown.KeyA){
-                    player.switchSkin('idleRight');
+        if(game.keysDown.KeyW){
+            if(playerMovementData.jumps<2){
+                playerMovementData.jumps+=1;
+                player.speed.y+=player.speed.y>=300?0:25;
+                player.velocity.y = -1;
+                if(collisionSide=="right"){
+                    if(!game.keysDown.KeyA){
+                        player.switchSkin('idleRight');
+                    }
+                    player.velocity.x+=2;
+                }else if(collisionSide=="left"){
+                    if(!game.keysDown.KeyD){
+                        player.switchSkin('idleLeft');
+                    }
+                    player.velocity.x-=2;
                 }
-                player.velocity.x+=2;
-            }else if(collisionSide=="left"){
-                if(!game.keysDown.KeyD){
-                    player.switchSkin('idleLeft');
-                }
-                player.velocity.x-=2;
             }
+            game.keysDown.KeyW = false;
         }
-        game.keysDown.KeyW = false;
+        if(game.keysDown.KeyS){
+            if(player.velocity.x!==0)player.velocity.x += player.velocity.x > 0 ? -1 * delta : 1 * delta;
+            if(!currentlyColliding.y)player.velocity.y += 1 * delta;
+        }
+        if(player.velocity.y > 0){
+            playerMovementData.falling = true;
+            direction.y = -1;
+        }else if(player.velocity.y < 0){
+            playerMovementData.jumping = true;
+            direction.y = 1;
+        }else{
+            direction.y = 0;
+        }
+        if(player.velocity.x > 0){
+            direction.x = 1;
+        }else if(player.velocity.x < 0){
+            direction.x = -1;
+        }else{
+            direction.x = 0;
+        }
+    },function(){
+        let destination = {
+            x:-player.location.x+(game.camera.scale.width)-(player.scale.width/2),
+            y:(gameScreen.height)-(player.location.y*0.9)
+        }
+        let diff = {
+            x:destination.x - game.camera.location.x,
+            y:destination.y - game.camera.location.y,
+        }
+        let distance = Math.sqrt((diff.x**2)+(diff.y**2));
+        let maxDiff = 1;
+        if(diff.x<=maxDiff&&diff.x>=-maxDiff){
+            diff.x = 0;
+        }
+        if(diff.y<=maxDiff&&diff.y>=-maxDiff){
+            diff.y = 0;
+        }
+        let drag = 0.5;
+        if(diff.x<0){
+            diff.x+=drag;
+        }else if(diff.x>0){
+            diff.x-=drag;
+        }
+        if(diff.y<0){
+            diff.y+=drag;
+        }else if(diff.y>0){
+            diff.y-=drag;
+        }
+        game.camera.location.x += drag*(diff.x/10);
+        game.camera.location.y += drag*(diff.y/10);
     }
-    if(game.keysDown.KeyS){
-        if(player.velocity.x!==0)player.velocity.x += player.velocity.x > 0 ? -1 * delta : 1 * delta;
-        if(!currentlyColliding.y)player.velocity.y += 1 * delta;
-    }
-    if(player.velocity.y > 0){
-        playerMovementData.falling = true;
-        direction.y = -1;
-    }else if(player.velocity.y < 0){
-        playerMovementData.jumping = true;
-        direction.y = 1;
-    }else{
-        direction.y = 0;
-    }
-    if(player.velocity.x > 0){
-        direction.x = 1;
-    }else if(player.velocity.x < 0){
-        direction.x = -1;
-    }else{
-        direction.x = 0;
-    }
-})
+)
 game.play(); // :3
