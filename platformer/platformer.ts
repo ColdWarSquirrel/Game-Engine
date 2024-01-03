@@ -212,9 +212,10 @@ gameScreen.background = "black";
 let isCollidingWithTerrain = false;
 let direction = {x:0,y:0};
 let collisionSide:string|false = "";
+let cameraDrag = 0.9;
 game.camera.location.y = gameScreen.height/2;
 game.mainLoopFunctions.push(
-    function(){
+    function(){ // main sprite stuff n stuff
         let delta = game.timeData.delta;
         let slowSpeed = 1;
         let beforePos = player.location;
@@ -347,7 +348,7 @@ game.mainLoopFunctions.push(
         }else{
             direction.x = 0;
         }
-    },function(){
+    },function(){ // camera stuff
         let destination = {
             x:-player.location.x+(game.camera.scale.width)-(player.scale.width/2),
             y:(gameScreen.height)-(player.location.y*0.9)
@@ -364,7 +365,7 @@ game.mainLoopFunctions.push(
         if(diff.y<=maxDiff&&diff.y>=-maxDiff){
             diff.y = 0;
         }
-        let drag = 0.5;
+        let drag = cameraDrag;
         if(diff.x<0){
             diff.x+=drag;
         }else if(diff.x>0){

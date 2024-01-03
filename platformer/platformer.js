@@ -166,6 +166,7 @@ gameScreen.background = "black";
 let isCollidingWithTerrain = false;
 let direction = { x: 0, y: 0 };
 let collisionSide = "";
+let cameraDrag = 0.9;
 game.camera.location.y = gameScreen.height / 2;
 game.mainLoopFunctions.push(function () {
     let delta = game.timeData.delta;
@@ -333,7 +334,7 @@ game.mainLoopFunctions.push(function () {
     if (diff.y <= maxDiff && diff.y >= -maxDiff) {
         diff.y = 0;
     }
-    let drag = 0.5;
+    let drag = cameraDrag;
     if (diff.x < 0) {
         diff.x += drag;
     }
