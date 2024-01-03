@@ -170,6 +170,11 @@ class Camera{
         return true;
     }
 }
+interface gameOptions{
+    onstart?:Function,
+    refreshType?:number,
+    fps?:number
+}
 class Game{
     name: string;
     entities: Sprite[];
@@ -181,7 +186,9 @@ class Game{
     keysDown: object|any;
     ctx: CanvasRenderingContext2D;
     camera: Camera;
-    constructor(name="Example Game", onstart=()=>{}){
+    refreshType: number;
+    fps: number;
+    constructor(name="Example Game", options:gameOptions={}){
         this.name = name;
         this.entities = [];
         this.mainLoopFunctions = [];
@@ -192,6 +199,8 @@ class Game{
             lastTime:undefined,
             delta:0
         }
+        this.fps = 60;
+        this.refreshType = 0;
         this.ctx = <CanvasRenderingContext2D>document.querySelector('canvas')!.getContext('2d');
         this.camera = new Camera({
             scale:{
@@ -237,15 +246,29 @@ class Game{
             }
         })
         console.log(`game [${this.name}] started.`);
-        onstart();
+        if('onstart' in options){
+            options.onstart!();
+        }
+        if('refreshType' in options){
+            this.refreshType = options.refreshType!;
+        }
+        if('fps' in options){
+            this.fps = options.fps!;
+        }
+        if(this.refreshType == 0){ // requestAnimationFrame
+            requestAnimationFrame((now)=>{this.mainGameLoop(now)});
+        }else if(this.refreshType == 1){
+            setInterval(()=>{this.mainGameLoop(performance.now())},1000/this.fps);
+        }else{
+            requestAnimationFrame((now)=>{this.mainGameLoop(now)});
+        }
         // requestAnimationFrame gives a parameter that is the time since [time origin](https://developer.mozilla.org/en-US/docs/Web/API/Performance/timeOrigin#value)
         // (the time at which the browser context was created)
-        requestAnimationFrame((now)=>{this.mainGameLoop(now)})
     }
     mainGameLoop(now:number){
         if (this.timeData.lastTime==undefined) { this.timeData.lastTime = now; }
         // capping delta at 0.35 seconds, to prevent massive snapping to other sides of the screen
-        this.timeData.delta = (now - this.timeData.lastTime>350) ? 0.35 : (now - this.timeData.lastTime)/1000;
+        this.timeData.delta = (now - this.timeData.lastTime>1000/30) ? 1/30 : (now - this.timeData.lastTime)/1000;
         this.timeData.lastTime = now;
         // also keeping delta outside of game pausing, because otherwise `now` would keep increasing and `lastTime` would stay the same, resulting in there being one frame of
         // massive "lag" every time the game is paused for any length of time
@@ -258,7 +281,9 @@ class Game{
                 this.mainLoopFunctions[i]();
             }
         }
-        requestAnimationFrame((now)=>{this.mainGameLoop(now)});
+        if(this.refreshType==0){
+            requestAnimationFrame((now)=>{this.mainGameLoop(now)});
+        }
     }
     addSprite(sprite:Sprite){
         this.entities.push(sprite);
