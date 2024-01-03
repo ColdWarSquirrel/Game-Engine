@@ -320,6 +320,41 @@ class Game{
         this.camera.entityList = this.entities;
         return this.entities.slice(-sprites.length);
     }
+    removeSprite(s:Sprite|number|string){
+        if(this.entities.length>0){
+            let sprite:Sprite;
+            let index:number = 0;
+            if(typeof s == 'number'){
+                sprite = this.entities[s];
+                index = s;
+            }else if(typeof s == 'string'){
+                sprite = this.entities.filter((s1,i) => {
+                    if(s1.name===s){
+                        index = i;
+                    }
+                    return s1.name === s;
+                })[0];
+            }else{
+                sprite = this.entities.filter((s1,i) => {
+                    if(s1===s){
+                        index = i;
+                    }
+                    return s1 === s;
+                })[0];
+            }
+            if(sprite!==undefined){
+                game.entities.splice(index,1);
+                return;
+            }else{
+                return s;
+            }
+        }
+    }
+    removeSprites(...s:Sprite[]|number[]|string[]){
+        for(let i = s.length; i > 0; i--){
+            this.removeSprite(s[i]);
+        }
+    }
     refreshSprite(sprite:Sprite){
         return new Sprite(sprite.fullConfig, sprite.customProperties);
     }
@@ -650,7 +685,7 @@ class Sprite{
             let loc = {
                 x:this.location.x,
                 y:this.location.y
-            }
+            };
             if(this.parent!==undefined && typeof this.parent == 'object'){
                 loc.x = (this.parent.camera.location.x-(this.parent.camera.scale.width/2))+this.location.x;
                 loc.y = (this.parent.camera.location.y-(this.parent.camera.scale.height/2))+this.location.y;

@@ -286,6 +286,44 @@ class Game {
         this.camera.entityList = this.entities;
         return this.entities.slice(-sprites.length);
     }
+    removeSprite(s) {
+        if (this.entities.length > 0) {
+            let sprite;
+            let index = 0;
+            if (typeof s == 'number') {
+                sprite = this.entities[s];
+                index = s;
+            }
+            else if (typeof s == 'string') {
+                sprite = this.entities.filter((s1, i) => {
+                    if (s1.name === s) {
+                        index = i;
+                    }
+                    return s1.name === s;
+                })[0];
+            }
+            else {
+                sprite = this.entities.filter((s1, i) => {
+                    if (s1 === s) {
+                        index = i;
+                    }
+                    return s1 === s;
+                })[0];
+            }
+            if (sprite !== undefined) {
+                game.entities.splice(index, 1);
+                return;
+            }
+            else {
+                return s;
+            }
+        }
+    }
+    removeSprites(...s) {
+        for (let i = s.length; i > 0; i--) {
+            this.removeSprite(s[i]);
+        }
+    }
     refreshSprite(sprite) {
         return new Sprite(sprite.fullConfig, sprite.customProperties);
     }
