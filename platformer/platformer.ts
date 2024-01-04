@@ -128,6 +128,31 @@ class Coin extends Sprite{
     }
 }
 let collectedCoins = 0;
+const textTest = new Sprite({  
+    info:{
+        name:"text",
+        type:"text",
+        text:{
+            content:"penis lol",
+            font:"Arial",
+            size:30
+        },
+        colour:{
+            fill:"white",
+            stroke:"white"
+        }
+    },
+    location:{
+        x:(gameScreen.width*0.5)-30,
+        y:(gameScreen.height*0.8),
+        z:-1
+    },
+    scale:{
+        width:50,
+        height:25
+    }
+});
+game.addSprite(textTest);
 let coins = game.addSprites(
     new Coin({
         location:{

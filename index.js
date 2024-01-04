@@ -20,13 +20,19 @@ class GameScreen {
         this.height = viewport.height;
         this.background = "white";
         this.documentObject = document.querySelector('canvas');
+        this.fullscreen = false;
         if ('width' in options)
             this.width = options.width;
         if ('height' in options)
             this.height = options.height;
         if ('backgroundColour' in options)
             this.background = options.backgroundColour;
+        if ('fullscreen' in options)
+            this.fullscreen = options.fullscreen;
+        this.naturalWidth = this.width;
+        this.naturalHeight = this.height;
         this.ctx = this.documentObject.getContext("2d");
+        this.ctx.imageSmoothingEnabled = false;
         this.resize(this.width, this.height, true);
         // just a basic default mouse position before the user moves their mouse
         this.mousePos = {
@@ -51,22 +57,41 @@ class GameScreen {
         // save+restore my beloved, was using variables to do this for so long LOL
     }
     resize(width, height, clearAll = false) {
-        this.width = width !== null && width !== void 0 ? width : this.width;
-        this.height = height !== null && height !== void 0 ? height : this.height;
-        this.documentObject.width = this.width;
-        this.documentObject.height = this.height;
         viewport = {
             width: window.innerWidth,
             height: window.innerHeight
         };
+        if (this.fullscreen == false) {
+            this.matchScreenSize();
+        }
+        this.width = width !== null && width !== void 0 ? width : this.width;
+        this.height = height !== null && height !== void 0 ? height : this.height;
+        this.documentObject.width = this.width;
+        this.documentObject.height = this.height;
         if (clearAll) {
             this.clear();
-        } /*else{
-            // relying on the game variable being called game, should probably fix this
-            if(this.game){
-                this.game.redrawEntities();
-            }
-        }*/
+        }
+    }
+    isFullscreen() {
+        return this.fullscreen;
+    }
+    resetSize() {
+        this.documentObject.width = this.naturalWidth;
+        this.documentObject.height = this.naturalHeight;
+    }
+    matchScreenSize() {
+        this.documentObject.width = viewport.width;
+        this.documentObject.height = viewport.height;
+    }
+    toggleFullscreen() {
+        if (this.isFullscreen()) {
+            this.fullscreen = false;
+            this.resetSize();
+        }
+        else {
+            this.fullscreen = true;
+            this.matchScreenSize();
+        }
     }
 }
 let gameScreen = new GameScreen({ width: 700, height: 700 });
@@ -387,13 +412,14 @@ class Game {
 }
 class Sprite {
     constructor(options, customProperties = []) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f, _g;
         // setting defaults at beginning instead of as a contingency, also less else statements (less confusing to read)
         this.name = "John Derp";
         this.type = "box";
         this.skin = new Image();
         this.animations = [];
         this.spriteUrl = "";
+        this.text;
         this.location = {
             x: 0,
             y: 0,
@@ -508,6 +534,29 @@ class Sprite {
                     }
                 }
             }
+            if (options.info.type == "text") {
+                this.type = "text";
+                if ('scale' in options) {
+                    if (typeof options.scale.width !== "string") {
+                        this.scale.width = options.scale.width;
+                        this.scale.naturalWidth = options.scale.width;
+                    }
+                    if (typeof options.scale.height !== "string") {
+                        this.scale.height = options.scale.height;
+                        this.scale.naturalHeight = options.scale.height;
+                    }
+                }
+                if ('text' in options.info) {
+                    this.text = new TextObject({
+                        name: this.name,
+                        content: (_a = options.info.text) === null || _a === void 0 ? void 0 : _a.content,
+                        font: (_b = options.info.text) === null || _b === void 0 ? void 0 : _b.font,
+                        size: (_c = options.info.text) === null || _c === void 0 ? void 0 : _c.size,
+                        colour: this.colour,
+                        location: this.location
+                    });
+                }
+            }
             if (options.info.type == "ball") {
                 this.type = "ball";
                 if ('scale' in options) {
@@ -532,8 +581,8 @@ class Sprite {
                             name: skin.name,
                             url: skin.url,
                             scale: {
-                                width: (_b = (_a = options === null || options === void 0 ? void 0 : options.scale) === null || _a === void 0 ? void 0 : _a.width) !== null && _b !== void 0 ? _b : "default",
-                                height: (_d = (_c = options === null || options === void 0 ? void 0 : options.scale) === null || _c === void 0 ? void 0 : _c.height) !== null && _d !== void 0 ? _d : "default"
+                                width: (_e = (_d = options === null || options === void 0 ? void 0 : options.scale) === null || _d === void 0 ? void 0 : _d.width) !== null && _e !== void 0 ? _e : "default",
+                                height: (_g = (_f = options === null || options === void 0 ? void 0 : options.scale) === null || _f === void 0 ? void 0 : _f.height) !== null && _g !== void 0 ? _g : "default"
                             }
                         }, () => {
                             this.fullyLoaded = true;
@@ -608,6 +657,13 @@ class Sprite {
                 }
                 gameScreen.ctx.rect(loc.x, loc.y, this.scale.width, this.scale.height);
                 gameScreen.ctx.stroke();
+            }
+            else if (this.type == "text") {
+                gameScreen.ctx.fillStyle = this.colour.fill;
+                gameScreen.ctx.strokeStyle = this.colour.stroke;
+                gameScreen.ctx.font = this.text.fontSettings();
+                let fText = this.text.fillText();
+                gameScreen.ctx.strokeText(fText.c, loc.x, loc.y);
             }
             else if (this.type == "ball") {
                 gameScreen.ctx.beginPath();
@@ -799,6 +855,52 @@ class Sprite {
         if (maxSelf.y > target.y || target.y > minSelf.y) {
             return false;
         }
+    }
+}
+class TextObject {
+    constructor(options) {
+        this.name = "text";
+        this.content = "Example";
+        this.font = "Arial";
+        this.size = 16;
+        this.colour = {
+            stroke: "black",
+            fill: "white"
+        };
+        this.location = {
+            x: 0,
+            y: 0
+        };
+        options = options !== null && options !== void 0 ? options : {};
+        if ('name' in options) {
+            this.name = options.name;
+        }
+        if ('font' in options) {
+            this.font = options.font;
+        }
+        if ('colour' in options) {
+            this.colour = options.colour;
+        }
+        if ('size' in options) {
+            this.size = options.size;
+        }
+        if ('content' in options) {
+            this.content = options.content;
+        }
+        if ('location' in options) {
+            if ('x' in options.location) {
+                this.location.x = options.location.x;
+            }
+            if ('y' in options.location) {
+                this.location.y = options.location.y;
+            }
+        }
+    }
+    fontSettings() {
+        return `${this.size}px ${this.font}`;
+    }
+    fillText() {
+        return { c: this.content, x: this.location.x, y: this.location.y };
     }
 }
 class Skin {

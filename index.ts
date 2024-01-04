@@ -14,7 +14,7 @@ var viewport = {
     width:window.innerWidth,
     height:window.innerHeight
 };
-interface Vector{
+interface Vector2D{
     x:number,
     y:number
 };
@@ -22,15 +22,19 @@ interface GameScreenOptions{
     width?:number, 
     height?:number, 
     canvas?:HTMLCanvasElement|string,
-    backgroundColour?:string
+    backgroundColour?:string,
+    fullscreen?:boolean
 }
 class GameScreen{
     documentObject:HTMLCanvasElement|any;
     background:string;
     ctx:CanvasRenderingContext2D;
-    mousePos:Vector;
+    mousePos:Vector2D;
     width:number;
     height:number;
+    naturalWidth:number;
+    naturalHeight:number;
+    fullscreen:boolean;
     constructor(options:GameScreenOptions) // switch to single parameter called options at some point
     {
         // this doesn't really need to be here, since it's likely I'll already have a canvas anyway, but merrrr
@@ -38,10 +42,15 @@ class GameScreen{
         this.height = viewport.height;
         this.background = "white";
         this.documentObject = document.querySelector('canvas');
+        this.fullscreen = false;
         if('width' in options)this.width = options.width!;
         if('height' in options)this.height = options.height!;
         if('backgroundColour' in options)this.background = options.backgroundColour!;
+        if('fullscreen' in options)this.fullscreen = options.fullscreen!;
+        this.naturalWidth =  this.width;
+        this.naturalHeight = this.height;
         this.ctx = <CanvasRenderingContext2D>this.documentObject.getContext("2d");
+        this.ctx.imageSmoothingEnabled = false;
         this.resize(this.width,this.height,true);
 
         // just a basic default mouse position before the user moves their mouse
@@ -68,22 +77,40 @@ class GameScreen{
         // save+restore my beloved, was using variables to do this for so long LOL
     }
     resize(width?:number|null, height?:number|null, clearAll=false){
-        this.width = width ?? this.width;
-        this.height = height ?? this.height;
-        this.documentObject.width = this.width;
-        this.documentObject.height = this.height;
         viewport = {
             width:window.innerWidth,
             height:window.innerHeight
         };
+        if(this.fullscreen==false){
+            this.matchScreenSize();
+        }
+        this.width = width ?? this.width;
+        this.height = height ?? this.height;
+        this.documentObject.width = this.width;
+        this.documentObject.height = this.height;
         if(clearAll){
             this.clear();
-        }/*else{
-            // relying on the game variable being called game, should probably fix this
-            if(this.game){
-                this.game.redrawEntities();
-            }
-        }*/
+        }
+    }
+    isFullscreen():boolean{
+        return this.fullscreen;
+    }
+    resetSize(){
+        this.documentObject.width = this.naturalWidth;
+        this.documentObject.height = this.naturalHeight;
+    }
+    matchScreenSize(){
+        this.documentObject.width = viewport.width;
+        this.documentObject.height = viewport.height;
+    }
+    toggleFullscreen(){
+        if(this.isFullscreen()){
+            this.fullscreen = false;
+            this.resetSize();
+        }else{
+            this.fullscreen = true;
+            this.matchScreenSize();
+        }
     }
 }
 let gameScreen:GameScreen = new GameScreen({width:700,height:700});
@@ -92,7 +119,7 @@ interface cameraParameters{
         width:number|string,
         height:number|string,
     },
-    location?:Vector,
+    location?:Vector2D,
     name?:string,
     entities?:Sprite[]|any[]
 }
@@ -100,7 +127,7 @@ class Camera{
     name: string;
     scale:scale;
     parent:any;
-    location:Vector;
+    location:Vector2D;
     entityList:Sprite[]|any[];
     constructor(options:cameraParameters){
         let width = options?.scale?.width ?? "full";
@@ -440,6 +467,12 @@ interface spriteParameters{
         name:string,
         skins?:skinsInput[],
         anims?:Anim[],
+        text?:{
+            font?:string,
+            size?:number,
+            content?:string,
+            style?:string
+        }
         type:string,
         fillMode?:string,
         colour?:{
@@ -480,9 +513,9 @@ class Sprite{
     name: string;
     parent:any;
     type: string;
-    location: { x: number; y: number; z: number; static:boolean; };
-    speed: { x: number; y: number; base: Vector; };
-    velocity: Vector;
+    location: { x: number; y: number; z: number; static?:boolean; };
+    speed: { x: number; y: number; base: Vector2D; };
+    velocity: Vector2D;
     scale: { width: number; height: number; naturalWidth: number; naturalHeight: number; radius: number; naturalRadius: number; };
     skins: skinsInput[];
     colour: { fill: string; stroke: string; };
@@ -496,6 +529,7 @@ class Sprite{
     skin: HTMLImageElement;
     spriteUrl: string;
     animations: Anim[]|[];
+    text?:TextObject;
     constructor(options:spriteParameters, customProperties:any[]=[]){
         // setting defaults at beginning instead of as a contingency, also less else statements (less confusing to read)
         this.name = "John Derp";
@@ -503,6 +537,7 @@ class Sprite{
         this.skin = new Image();
         this.animations = [];
         this.spriteUrl = "";
+        this.text;
         this.location = {
             x:0,
             y:0,
@@ -617,6 +652,29 @@ class Sprite{
                     }
                 }
             }
+            if(options.info.type=="text"){
+                this.type = "text";
+                if('scale' in options){
+                    if(typeof options.scale.width!=="string"){
+                        this.scale.width = options.scale.width!;
+                        this.scale.naturalWidth = options.scale.width!;
+                    }
+                    if(typeof options.scale.height!=="string"){
+                        this.scale.height = options.scale.height!;
+                        this.scale.naturalHeight = options.scale.height!;
+                    }
+                }
+                if('text' in options.info){
+                    this.text = new TextObject({
+                        name:this.name,
+                        content:options.info.text?.content,
+                        font:options.info.text?.font,
+                        size:options.info.text?.size,
+                        colour:this.colour,
+                        location:this.location
+                    });
+                }
+            }
             if(options.info.type=="ball"){
                 this.type = "ball";
                 if('scale' in options){
@@ -684,7 +742,7 @@ class Sprite{
         }
     }
     draw(){
-        if(this.hidden==false){ 
+        if(this.hidden==false){
             gameScreen.ctx.save();
             gameScreen.ctx.globalAlpha = this.opacity;
             let loc = {
@@ -710,6 +768,12 @@ class Sprite{
                 }
                 gameScreen.ctx.rect(loc.x, loc.y, this.scale.width, this.scale.height);
                 gameScreen.ctx.stroke();
+            }else if(this.type=="text"){
+                gameScreen.ctx.fillStyle = this.colour.fill;
+                gameScreen.ctx.strokeStyle = this.colour.stroke;
+                gameScreen.ctx.font = this.text!.fontSettings();
+                let fText = this.text!.fillText();
+                gameScreen.ctx.strokeText(fText.c,loc.x,loc.y);
             }else if(this.type=="ball"){
                 gameScreen.ctx.beginPath();
                 gameScreen.ctx.strokeStyle = this.colour.fill;
@@ -883,11 +947,11 @@ class Sprite{
     }
     isCoordsOver(x:number,y:number){
         let minSelf = this.location;
-        let maxSelf:Vector = {
+        let maxSelf:Vector2D = {
             x:this.location.x+this.scale.width,
             y:this.location.y+this.scale.height
         }
-        let target:Vector = {
+        let target:Vector2D = {
             x:x,
             y:y
         }
@@ -909,6 +973,72 @@ interface skinParameters{
     scale?:{
         width:number|string,
         height:number|string
+    }
+}
+interface textParameters{
+    name?:string,
+    content?:string,
+    font?:string,
+    colour?:{
+        stroke:string,
+        fill:string
+    },
+    size?:number,
+    location?:Vector2D
+}
+class TextObject{
+    name:string;
+    font:string;
+    size:number;
+    content:string;
+    colour:{
+        stroke:string,
+        fill:string
+    };
+    location:Vector2D;
+    constructor(options:textParameters){
+        this.name = "text";
+        this.content = "Example";
+        this.font = "Arial";
+        this.size = 16;
+        this.colour = {
+            stroke:"black",
+            fill:"white"
+        }
+        this.location = {
+            x:0,
+            y:0
+        }
+        options = options ?? {};
+        if('name' in options){
+            this.name = options.name!;
+        }
+        if('font' in options){
+            this.font = options.font!;
+        }
+        if('colour' in options){
+            this.colour = options.colour!;
+        }
+        if('size' in options){
+            this.size = options.size!;
+        }
+        if('content' in options){
+            this.content = options.content!;
+        }
+        if('location' in options){
+            if('x' in options.location!){
+                this.location.x = options.location.x;
+            }
+            if('y' in options.location!){
+                this.location.y = options.location.y;
+            }
+        }
+    }
+    fontSettings():string{
+        return `${this.size}px ${this.font}`;
+    }
+    fillText():{c:string,x:number,y:number}{
+        return {c:this.content, x:this.location.x, y:this.location.y};
     }
 }
 class Skin{
