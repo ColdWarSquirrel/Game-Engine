@@ -773,6 +773,9 @@ class Sprite{
                 gameScreen.ctx.strokeStyle = this.colour.stroke;
                 gameScreen.ctx.font = this.text!.fontSettings();
                 let fText = this.text!.fillText();
+                if(this.fillMode == "fill"){
+                    gameScreen.ctx.fillText(fText.c,loc.x,loc.y);
+                }
                 gameScreen.ctx.strokeText(fText.c,loc.x,loc.y);
             }else if(this.type=="ball"){
                 gameScreen.ctx.beginPath();

@@ -138,7 +138,7 @@ const textTest = new Sprite({
             size:30
         },
         colour:{
-            fill:"white",
+            fill:"green",
             stroke:"white"
         }
     },
