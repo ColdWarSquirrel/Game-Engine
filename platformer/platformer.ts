@@ -138,8 +138,8 @@ const textTest = new Sprite({
             size:30
         },
         colour:{
-            fill:"green",
-            stroke:"white"
+            fill:"red",
+            stroke:"blue"
         }
     },
     location:{
