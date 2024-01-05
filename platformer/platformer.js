@@ -99,7 +99,7 @@ const textTest = new Sprite({
         name: "text",
         type: "text",
         text: {
-            content: "penis lol",
+            content: "welcome :]",
             font: "Arial",
             size: 30
         },
@@ -118,7 +118,32 @@ const textTest = new Sprite({
         height: 25
     }
 });
-game.addSprite(textTest);
+const collectedCoinsText = new Sprite({
+    info: {
+        name: "text",
+        type: "text",
+        text: {
+            content: "0",
+            font: "Arial",
+            size: 30
+        },
+        colour: {
+            fill: "red",
+            stroke: "blue"
+        }
+    },
+    location: {
+        x: gameScreen.width * 0.05 < 30 ? 30 : gameScreen.width * 0.05,
+        y: gameScreen.height * 0.05 < 60 ? 60 : gameScreen.height * 0.05,
+        z: 2,
+        static: true
+    },
+    scale: {
+        width: 50,
+        height: 25
+    }
+});
+game.addSprites(textTest, collectedCoinsText);
 let coins = game.addSprites(new Coin({
     location: {
         x: gameScreen.width - 100,
@@ -239,6 +264,7 @@ game.mainLoopFunctions.push(function () {
         let colDetail = player.isCollidingWithDetail(coin, delta);
         if (colDetail !== false) {
             collectedCoins += 1;
+            collectedCoinsText.text.content = collectedCoins.toString();
             game.removeSprite(coin);
             coins.splice(i, 1);
             console.log("+1");
