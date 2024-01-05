@@ -55,6 +55,7 @@ class GameScreen {
         this.ctx.fillRect(0, 0, this.width, this.height);
         this.ctx.restore();
         // save+restore my beloved, was using variables to do this for so long LOL
+        return;
     }
     resize(width, height, clearAll = false) {
         viewport = {
@@ -71,6 +72,7 @@ class GameScreen {
         if (clearAll) {
             this.clear();
         }
+        return;
     }
     isFullscreen() {
         return this.fullscreen;
@@ -296,6 +298,7 @@ class Game {
     }
     clearFpsArray() {
         this.timeData.fpsArray = [];
+        return;
     }
     addSprite(sprite) {
         this.entities.push(sprite);
@@ -364,9 +367,11 @@ class Game {
     }
     play() {
         this.running = true;
+        return true;
     }
     stop() {
         this.running = false;
+        return false;
     }
     redrawEntities() {
         gameScreen.clear();
@@ -377,11 +382,13 @@ class Game {
             }
             ;
         }
+        return;
     }
     resortByZIndex() {
         this.entities.sort(function (a, b) {
             return a.location.z - b.location.z;
         });
+        return this.entities;
     }
     addSetting(name = "greg", values = {
         name: "property name",
@@ -402,12 +409,14 @@ class Game {
     saveSettings() {
         let save = JSON.stringify(this.settings);
         localStorage.setItem(`${this.name} Game Settings`, save);
+        return this.settings;
     }
     loadSettings() {
         let save = JSON.parse(localStorage.getItem(`${this.name} Game Settings`));
         if (save !== null || save !== "") {
             this.settings = [...new Set(save)]; // advantages of using Set is that it only contains unique values (and it's decently quick with it)
         }
+        return this.settings;
     }
 }
 class Sprite {
@@ -549,12 +558,19 @@ class Sprite {
                 if ('text' in options.info) {
                     this.text = new TextObject({
                         name: this.name,
+                        parent: this,
                         content: (_a = options.info.text) === null || _a === void 0 ? void 0 : _a.content,
                         font: (_b = options.info.text) === null || _b === void 0 ? void 0 : _b.font,
                         size: (_c = options.info.text) === null || _c === void 0 ? void 0 : _c.size,
                         colour: this.colour,
                         location: this.location
                     });
+                    let newSize = this.getSize();
+                    this.scale.width = newSize.width;
+                    this.scale.height = newSize.height;
+                    this.scale.naturalWidth = newSize.width;
+                    this.scale.naturalHeight = newSize.height;
+                    this.centreLocation();
                 }
             }
             if (options.info.type == "ball") {
@@ -628,6 +644,7 @@ class Sprite {
             this.scale.width = skin.scale.width;
             this.scale.height = skin.scale.height;
         }
+        return;
     }
     draw() {
         if (this.hidden == false) {
@@ -685,6 +702,7 @@ class Sprite {
             }
             gameScreen.ctx.restore();
         }
+        return;
     }
     changeSize(options) {
         let isWidth = (options === null || options === void 0 ? void 0 : options.width) !== undefined;
@@ -699,6 +717,41 @@ class Sprite {
             for (let skin = 0; skin < this.skins.length; skin++) {
             }
         }
+        return this.getSize();
+    }
+    getSize() {
+        if (this.type == 'text') {
+            let scale = gameScreen.ctx.measureText(this.text.content);
+            return {
+                width: scale.width,
+                height: scale.actualBoundingBoxAscent - scale.actualBoundingBoxDescent
+            };
+        }
+        else if (this.type == 'circle') {
+            return {
+                width: this.scale.radius * 2,
+                height: this.scale.radius * 2,
+                radius: this.scale.radius
+            };
+        }
+        else {
+            return {
+                width: this.scale.width,
+                height: this.scale.height
+            };
+        }
+    }
+    centredPos() {
+        return {
+            x: this.location.x - (this.scale.width / 2),
+            y: this.location.y - (this.scale.height / 2)
+        };
+    }
+    centreLocation() {
+        let newLoc = this.centredPos();
+        this.location.x = newLoc.x;
+        this.location.y = newLoc.y;
+        return newLoc;
     }
     getProperty(name) {
         if (this.customProperties.length > 0) {
@@ -863,6 +916,7 @@ class Sprite {
 class TextObject {
     constructor(options) {
         this.name = "text";
+        this.parent = options.parent;
         this.content = "Example";
         this.font = "Arial";
         this.size = 16;
@@ -898,6 +952,12 @@ class TextObject {
                 this.location.y = options.location.y;
             }
         }
+    }
+    changeText(newText) {
+        this.content = newText;
+        let newScale = this.parent.getSize();
+        this.parent.scale.width = newScale.width;
+        this.parent.scale.height = newScale.height;
     }
     fontSettings() {
         return `${this.size}px ${this.font}`;

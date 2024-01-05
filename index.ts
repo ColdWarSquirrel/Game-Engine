@@ -75,6 +75,7 @@ class GameScreen{
         this.ctx.fillRect(0,0,this.width,this.height);
         this.ctx.restore();
         // save+restore my beloved, was using variables to do this for so long LOL
+        return;
     }
     resize(width?:number|null, height?:number|null, clearAll=false){
         viewport = {
@@ -91,6 +92,7 @@ class GameScreen{
         if(clearAll){
             this.clear();
         }
+        return;
     }
     isFullscreen():boolean{
         return this.fullscreen;
@@ -332,6 +334,7 @@ class Game{
     }
     clearFpsArray(){
         this.timeData.fpsArray = [];
+        return;
     }
     addSprite(sprite:Sprite){
         this.entities.push(sprite);
@@ -394,9 +397,11 @@ class Game{
     }
     play(){
         this.running = true;
+        return true;
     }
     stop(){
         this.running = false;
+        return false;
     }
     redrawEntities(){
         gameScreen.clear();
@@ -406,11 +411,13 @@ class Game{
                 this.entities[i].animations[0].update(this.timeData.delta);
             };
         }
+        return;
     }
     resortByZIndex(){
         this.entities.sort(function(a, b) {
             return a.location.z - b.location.z;
         })
+        return this.entities;
     }
     addSetting(name:string="greg", values:any|object={
         name:"property name",
@@ -431,12 +438,14 @@ class Game{
     saveSettings(){
         let save = JSON.stringify(this.settings);
         localStorage.setItem(`${this.name} Game Settings`, save);
+        return this.settings;
     }
     loadSettings(){
         let save:any = JSON.parse(<string>localStorage.getItem(`${this.name} Game Settings`));
         if(save!==null||save!==""){
             this.settings = <{ [key: string]: any; name: string; }[]>[...new Set(save)]; // advantages of using Set is that it only contains unique values (and it's decently quick with it)
         }
+        return this.settings;
     }
 }
 interface skinsInput{
@@ -667,12 +676,19 @@ class Sprite{
                 if('text' in options.info){
                     this.text = new TextObject({
                         name:this.name,
+                        parent:this,
                         content:options.info.text?.content,
                         font:options.info.text?.font,
                         size:options.info.text?.size,
                         colour:this.colour,
                         location:this.location
                     });
+                    let newSize = this.getSize();
+                    this.scale.width = newSize.width;
+                    this.scale.height = newSize.height;
+                    this.scale.naturalWidth = newSize.width;
+                    this.scale.naturalHeight = newSize.height;
+                    this.centreLocation();
                 }
             }
             if(options.info.type=="ball"){
@@ -740,6 +756,7 @@ class Sprite{
             this.scale.width = skin.scale!.width;
             this.scale.height = skin.scale!.height;
         }
+        return;
     }
     draw(){
         if(this.hidden==false){
@@ -793,6 +810,7 @@ class Sprite{
             }
             gameScreen.ctx.restore();
         }
+        return;
     }
     changeSize(options:{width:number,height:number}){
         let isWidth = options?.width!==undefined;
@@ -807,6 +825,39 @@ class Sprite{
             for(let skin = 0; skin < this.skins.length; skin++){
             }
         }
+        return this.getSize();
+    }
+    getSize():{width:number,height:number,radius?:number}{
+        if(this.type=='text'){
+            let scale = gameScreen.ctx.measureText(this.text!.content);
+            return{
+                width:scale.width,
+                height:scale.actualBoundingBoxAscent-scale.actualBoundingBoxDescent
+            }
+        }else if(this.type=='circle'){
+            return{
+                width:this.scale.radius*2,
+                height:this.scale.radius*2,
+                radius:this.scale.radius
+            }
+        }else{
+            return{
+                width:this.scale.width,
+                height:this.scale.height
+            }
+        }
+    }
+    centredPos():{x:number,y:number}{
+        return{
+            x:this.location.x-(this.scale.width/2),
+            y:this.location.y-(this.scale.height/2)
+        }
+    }
+    centreLocation():{x:number,y:number}{
+        let newLoc = this.centredPos();
+        this.location.x = newLoc.x;
+        this.location.y = newLoc.y;
+        return newLoc;
     }
     getProperty(name:string){
         if(this.customProperties.length>0){
@@ -979,6 +1030,7 @@ interface skinParameters{
     }
 }
 interface textParameters{
+    parent:Sprite;
     name?:string,
     content?:string,
     font?:string,
@@ -990,6 +1042,7 @@ interface textParameters{
     location?:Vector2D
 }
 class TextObject{
+    parent:Sprite;
     name:string;
     font:string;
     size:number;
@@ -1001,6 +1054,7 @@ class TextObject{
     location:Vector2D;
     constructor(options:textParameters){
         this.name = "text";
+        this.parent = options.parent;
         this.content = "Example";
         this.font = "Arial";
         this.size = 16;
@@ -1036,6 +1090,12 @@ class TextObject{
                 this.location.y = options.location.y;
             }
         }
+    }
+    changeText(newText:string){
+        this.content = newText;
+        let newScale = this.parent.getSize();
+        this.parent.scale.width = newScale.width;
+        this.parent.scale.height = newScale.height;
     }
     fontSettings():string{
         return `${this.size}px ${this.font}`;
