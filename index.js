@@ -195,6 +195,7 @@ class Game {
             totalFrames: 0,
             fpsArray: []
         };
+        this.currentKeysDown = [];
         this.fps = 60;
         this.vsync = true;
         this.camera = new Camera({

@@ -223,6 +223,7 @@ class Game{
     camera: Camera;
     vsync: boolean;
     fps: number;
+    currentKeysDown:any[];
     constructor(name="Example Game", options:gameOptions={}){
         this.name = name;
         this.entities = [];
@@ -236,6 +237,7 @@ class Game{
             totalFrames:0,
             fpsArray:[]
         }
+        this.currentKeysDown = [];
         this.fps = 60;
         this.vsync = true;
         this.camera = new Camera({
