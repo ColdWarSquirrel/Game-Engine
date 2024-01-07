@@ -80,10 +80,16 @@ class GameScreen {
     resetSize() {
         this.documentObject.width = this.naturalWidth;
         this.documentObject.height = this.naturalHeight;
+        this.width = this.naturalWidth;
+        this.height = this.naturalHeight;
+        return;
     }
     matchScreenSize() {
         this.documentObject.width = viewport.width;
         this.documentObject.height = viewport.height;
+        this.width = viewport.width;
+        this.height = viewport.height;
+        return viewport;
     }
     toggleFullscreen() {
         if (this.isFullscreen()) {
@@ -94,6 +100,7 @@ class GameScreen {
             this.fullscreen = true;
             this.matchScreenSize();
         }
+        return this.fullscreen;
     }
 }
 let gameScreen = new GameScreen({ width: 700, height: 700 });
@@ -189,8 +196,7 @@ class Game {
             fpsArray: []
         };
         this.fps = 60;
-        this.refreshType = 0;
-        this.ctx = document.querySelector('canvas').getContext('2d');
+        this.vsync = true;
         this.camera = new Camera({
             scale: {
                 width: "full",
@@ -223,6 +229,10 @@ class Game {
         // e.code is a string (KeyW, KeyA, etc), so it's setting the keysDown object property of that key to true or false
         document.addEventListener("keydown", (e) => {
             this.keysDown[e.code] = true;
+            if (this.keysDown[e.code] !== undefined) {
+            }
+            else {
+            }
         });
         document.addEventListener("keyup", (e) => {
             this.keysDown[e.code] = false;
@@ -239,18 +249,18 @@ class Game {
         if ('onstart' in options) {
             options.onstart();
         }
-        if ('refreshType' in options) {
-            this.refreshType = options.refreshType;
+        if ('vsync' in options) {
+            this.vsync = options.vsync;
         }
         if ('fps' in options) {
             this.fps = options.fps;
         }
-        if (this.refreshType == 0) {
+        if (this.vsync == true) {
             // requestAnimationFrame gives a parameter that is the time since [time origin](https://developer.mozilla.org/en-US/docs/Web/API/Performance/timeOrigin#value)
             // (the time at which the browser context was created)
             requestAnimationFrame((now) => { this.mainGameLoop(now); });
         }
-        else if (this.refreshType == 1) {
+        else if (this.vsync == false) {
             setInterval(() => { this.mainGameLoop(performance.now()); }, 1000 / this.fps);
         }
         else {
@@ -280,7 +290,7 @@ class Game {
                 this.mainLoopFunctions[i]();
             }
         }
-        if (this.refreshType == 0) {
+        if (this.vsync == true) {
             requestAnimationFrame((now) => { this.mainGameLoop(now); });
         }
     }
@@ -339,18 +349,19 @@ class Game {
                 })[0];
             }
             if (sprite !== undefined) {
-                game.entities.splice(index, 1);
-                return;
+                return game.entities.splice(index, 1);
             }
             else {
-                return s;
+                return undefined;
             }
         }
     }
     removeSprites(...s) {
+        let ret = [];
         for (let i = s.length; i > 0; i--) {
-            this.removeSprite(s[i]);
+            ret.push(this.removeSprite(s[i]));
         }
+        return ret;
     }
     refreshSprite(sprite) {
         return new Sprite(sprite.fullConfig, sprite.customProperties);
@@ -390,10 +401,7 @@ class Game {
         });
         return this.entities;
     }
-    addSetting(name = "greg", values = {
-        name: "property name",
-        value: "property value"
-    }) {
+    addSetting(name = "greg", values = { key: "example", otherkey: "another example" }) {
         let setting = {};
         setting['name'] = name;
         for (let prop in values) {
@@ -427,7 +435,6 @@ class Sprite {
         this.type = "box";
         this.skin = new Image();
         this.animations = [];
-        this.spriteUrl = "";
         this.text;
         this.location = {
             x: 0,
@@ -681,9 +688,9 @@ class Sprite {
                 gameScreen.ctx.font = this.text.fontSettings();
                 let fText = this.text.fillText();
                 if (this.fillMode == "fill") {
-                    gameScreen.ctx.fillText(fText.c, loc.x, loc.y);
+                    gameScreen.ctx.fillText.apply(gameScreen.ctx, [fText[0], loc.x, loc.y]);
                 }
-                gameScreen.ctx.strokeText(fText.c, loc.x, loc.y);
+                gameScreen.ctx.strokeText.apply(gameScreen.ctx, [fText[0], loc.x, loc.y]);
             }
             else if (this.type == "ball") {
                 gameScreen.ctx.beginPath();
@@ -963,7 +970,7 @@ class TextObject {
         return `${this.size}px ${this.font}`;
     }
     fillText() {
-        return { c: this.content, x: this.location.x, y: this.location.y };
+        return [this.content, this.location.x, this.location.y];
     }
 }
 class Skin {
