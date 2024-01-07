@@ -17,25 +17,95 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Game Engine! What?</title>
         <style>
+            :root{
+                --mainWidth:800px;
+            }
             *:not(body,html,head){
-                max-width:600px;
+                max-width: 100%;
+                width:800px;
+                word-wrap: break-word;
+                text-wrap: wrap;
+                white-space: normal;
+                word-break: break-word
             }
             body,html{
-                margin:0 auto;
+                width:100%;
+                height:100%;
+                margin: 0 auto;
+                overflow:wrap;
             }
-            div:first-of-type{
+            body{
+                background-color: rgb(36, 36, 36);
+                color:rgb(224, 224, 224);
+            }
+            #main{
+                position:absolute;
+                margin-left: 0px;
+                padding: 1%;
+                background-color: rgb(53, 53, 53);
+                left:20%;
+                text-wrap:wrap;
+                max-width:900px;
+                width:900px;
+            }
+            #right{
+                position:absolute;
+                left: 900px;
+                top:0px;
+                width:max-content;
+                height:100%;
+                background-color: white;
+            }
+            a{
+                color:rgb(162, 162, 255)
+            }
+            a,h1,h2,h3,h4,h5,h6{
+                display: inline;
+            }
+            dd{
                 margin-left:25px;
-                padding:25px;
+                width: fit-content;
             }
-            @media screen and (max-width:600px) {
-                div:first-of-type{
-                    margin-left:0px;
+            @media screen and (max-width: 1400px) {
+                #main{
+                    left:10%;
                 }
+            }
+            @media screen and (max-width: 1000px) {
+                #main{
+                    left:5%;
+                }
+            }
+            @media screen and (max-width: 950px) {
+                #main{
+                    left:2vw;;
+                }
+            }
+            @media screen and (max-width: 900px) {
+                #main{
+                    left:0px;
+                    margin-left: 0px;
+                }
+            }
+            .marginless,.marginless>*{
+                margin: 0;
+                padding: 0;
+            }
+            .example{
+                max-width:500px;
+                margin:10px;
+                padding:10px;
+                border-radius:10px;
+                border:1px solid black;
+                background-color: rgb(12, 12, 12);
+                color:rgb(0, 165, 0);
+                unicode-bidi: embed;
+                white-space: pre;
             }
         </style>
     </head>
     <body>
-        <div>
+        <div id="main">
             <h1>You!</h1>
             <h2>you there!</h2>
             <h3>do you like games?</h3>
@@ -47,16 +117,520 @@
             god knows how long I'm going to keep these going
             </p>
             <p>
-                <h2>Basic Rules</h2>
-                <ul>
-                    <li>
-                        so after some tinkering I decided (probably rather stupidly) that there should just be a global <code>GameScreen</code> variable that the developer can resize, named (usefully) <code>gameScreen</code>. if you want to resize it, you have to use the function <code>.resize()</code> on the <code>gameScreen</code> variable.
-                    </li>
-                    <li>
-                        there's a <code>mainLoopFunctions</code> property attatched to the <code>Game</code> class, where you can add functions to run every frame.
-                    </li>
-                </ul>
+                <a href="#docs"><h1 id="docs">Docs</h1></a>
+                <hr>
+                <dl>
+                    <a href="#gamescreen"><dt id="gamescreen">
+                        <h2>Game Screen (<code>gameScreen: GameScreen</code>)</h2>
+                    </dt></a>
+                    <dd>
+                        <dl>
+                            <dt>
+                                so after some tinkering I decided (probably rather stupidly) that there should just be a global <code>GameScreen</code> variable that the developer can resize, named (usefully) <code>gameScreen</code>.<br><br>
+                                <code>.documentObject: HTMLCanvasElement|any</code>: canvas element, either created or supplied in arguments<br>
+                                <code>.background: string</code>: background colour<br>
+                                <code>.ctx: CanvasRenderingContext2D</code>: yeah<br>
+                                <code>.mousePos: { x: number, y: number }(shorthand &lt;Vector2D&gt;)</code>: position of mouse inside the canvas<br>
+                                <code>.width: number</code>: width of the game screen<br>
+                                <code>.height: number</code>: height of the game screen<br>
+                                <code>.naturalWidth: number</code>: initial width of the game screen<br>
+                                <code>.naturalHeight: number</code>: initial height of the game screen<br>
+                                <code>fullscreen: boolean</code>: if the game screen fills the innerWidth and innerHeight of the screen, not if the screen is actually in "fullscreen"<br><br>
+                                default size: 700x700 pixels<br>
+                                <a href="#gamescreen-functions"><h3 id="gamescreen-functions">Functions</h3></a>
+                            </dt>
+                            <dd>
+                                <dl>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.clear(): void</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        clears the canvas by filling it with the background colour property of the gameScreen variable<br>
+                                        <code>return</code>: <code>void</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.resize(width?: number, height?: number, clearAll?: boolean=false): void</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        <code>width?: number</code>: new width of gameScreen variable and canvas<br>
+                                        <code>height?: number</code>: new height of gameScreen variable and canvas<br>
+                                        <code>clearAll?: boolean</code>: whether or not to clear the contents of the canvas after resize<br>
+                                        <code>return</code>: <code>void</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.isFullscreen(): boolean</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        returns the <code>.isFullscreen</code> property<br>
+                                        <code>return</code>: <code>boolean</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.resetSize(): void</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        resets the width and height of the variable and canvas to the naturalWidth of the variable<br>
+                                        <code>return</code>: <code>void</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.matchScreenSize(): viewport: { width: number, height: number }</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        makes the width and height of the variable and canvas the same size as the viewport<br>
+                                        <code>return</code>: <code>viewport: { width: number, height: number }</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.toggleFullscreen(): boolean</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        makes the width and height of the variable and canvas the same size as the viewport<br>
+                                        <code>return</code>: <code>viewport: { width: number, height: number }</code>
+                                    </dd>
+                                    
+                                </dl>
+                            </dd>
+                        </dl>
+                    </dd>
+                    <hr>
+                    <a href="#game"><dt id="game">
+                        <h2>Game (<code>&lt;Game&gt;</code>)</h2>
+                    </dt></a>
+                    <dd>
+                        <dl>
+                            <dt>
+                                a global <code>Game</code> class, only to be used once to intialise a game instance<br><br>
+                                <code>.name: string</code>: the name of the game is the name of the game, babyyyy<br>
+                                <code>.entities: Sprite[]</code>: global list of entities to be drawn every frame, or generally handled by the game class<br>
+                                <code>.mainLoopFunctions: {(): any}[]</code>: list of functions to be executed every frame, in the order you add them<br>
+                                <code>.settings: {name: string,[key: string]: any}[]</code>: list of settings with keys and values that can be stored and loaded via localStorage<br>
+                                <code>.autopause: boolean</code>: if the game is to automatically pause when the game loses focus or the window is hidden<br>
+                                <code>.running: boolean</code>: if the game is running, i.e. not paused<br>
+                                <code>.timeData: { lastTime: number|undefined; delta: number; totalFrames: number; fpsArray: number[] }</code>: collection of data about time stuff<br>
+                                <code>timeData.lastTime</code>: the time in milliseconds since the game started<br>
+                                <code>timeData.delta</code>: the time in seconds since the last frame<br>
+                                <code>timeData.totalFrames</code>: amount of frames since the game began><br>
+                                <code>timeData.fpsArray</code>: an array of the fps of every frame, reset every 10 seconds (for diagostics/debugging)
+                                <code>.keysDown: object|any</code>: an object with keys corresponding to the text code of a KeyboardEvent<br>
+                                <code>.camera: Camera</code>: a global game camera object<br>
+                                <code>.vsync: boolean</code>: whether to use vsync or not, if true, calls requestAnimationFrame, else it calls setInterval<br>
+                                <code>.fps: number</code>: if vsync is set to false, then this value will be the target fps: <code>1/this.fps</code><br><br>
+                                
+                                parameters:<ul>
+                                    <li>
+                                        <code>name:string</code>: the name of the game
+                                    </li>
+                                    <li>
+                                        <code>options:</code>{<li>
+                                            <ul>
+                                                <code>onstart?:Function</code>: code to run when the game starts
+                                            </ul>
+                                            <ul>
+                                                <code>vsync?:boolean</code>: whether or not to use vsync
+                                            </ul>
+                                            <ul>
+                                                <code>fps?:number</code>: target fps when vsync is disabled
+                                            </ul>
+                                        </li>}
+                                    </li>
+                                </ul>
+                                example:
+                                <div class="example"><pre><code>1| const game = new Game("Example Game", {<br>2| &Tab;onstart:()=>{ console.log("game started"); },<br>3| &Tab;vsync: false,<br>4| &Tab;fps:69<br>5| });</code></pre></div>
+                                <br><br>
+                                <a href="#game-functions"><h3 id="gamescreen-functions">Functions</h3></a>
+                            </dt>
+                            <dd>
+                                <dl>
+                                    <dt>
+                                        <h3>
+                                            <code>.mainGameLoop(): void</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        updates the delta, redraws entities, and if <code>.running</code> is true, then runs all the game loops<br>
+                                        <code>return</code>: <code>void</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.calculateAverageFps(): number</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        takes the <code>.timeData.fpsArray: number[]</code> array, and calculates the average from each value<br>
+                                        <code>return</code>: <code>number</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.clearFpsArray(): void</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        clears the <code>.timeData.fpsArray: number[]</code> array<br>
+                                        <code>return</code>: <code>void</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.addSprite(sprite: <a href='#sprite'>Sprite</a>): <a href='#sprite'>Sprite</a></code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        adds a sprite to the <code>.entities[]</code> list and returns it<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a></code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.addSprites(...sprites: <a href='#sprite'>Sprite</a>[]): <a href='#sprite'>Sprite</a>[]</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        adds an array of sprites to the <code>.entities[]</code> list and returns all the new sprites<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a>[]</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.removeSprite(sprite: <a href='#sprite'>Sprite</a>|number|string): <a href='#sprite'>Sprite</a>|undefined</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        takes in a sprite index, a sprite name, or a sprite object as a parameter and removes and returns it from the game entities list. if the entity does not exist, then it will return undefined.<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a>|undefined</code>
+                                    </dd>
+                                    
+                                    <dt>
+                                        <h3>
+                                            <code>.removeSprites(...sprites: (<a href='#sprite'>Sprite</a>|number|string)[]): (<a href='#sprite'>Sprite</a>|undefined)[]</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        takes in an array of sprite indexes, names, or sprite objects as a parameter and removes and returns them from the game entities list. if the entities do not exist, then it will return undefined.<br>
+                                        <code>return</code>: <code>(<a href='#sprite'>Sprite</a>|undefined)[]</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.refreshSprite(sprite: <a href='#sprite'>Sprite</a>): <a href='#sprite'>Sprite</a></code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        returns a new exact copy of the sprite given in the parameters<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a></code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.refreshAllSprites(): void</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        loops through the <code>.entities[]</code> array and replaces each with a copy of itself and then draws them<br>
+                                        <code>return</code>: <code>void</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.play(): true</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        sets <code>.running</code> to <code>true</code><br>
+                                        <code>return</code>: <code>true</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.stop(): false</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        sets <code>.running</code> to <code>false</code><br>
+                                        <code>return</code>: <code>false</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.resortByZIndex(): <a href='#sprite'>Sprite</a>[]</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        reorders the entity list based on Z index, so that entities farther back are drawn last<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a>[]</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.addSetting(name:string, values:any|object={ exampleKey:"example" }): object</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        creates a new setting with a name and any other amount of options and saves it to localStorage as JSON<br>
+                                        <code>return</code>: <code>object</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.loadSettings(): object[]</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        loads settings from localStorage, sets <code>.settings[]</code> to the results, and returns <code>.settings[]</code><br>
+                                        <code>return</code>: <code>object[]</code>
+                                    </dd>
+
+                                </dl>
+                            </dd>
+                        </dl>
+                    </dd>
+
+                    <a href="#sprite"><dt id="sprite">
+                        <h2>Sprite (<code>&lt;Sprite&gt;</code>)</h2>
+                    </dt></a>
+                    <dd>
+                        <dl>
+                            <dt>
+                                a 2D Sprite object, that can hold <a href="#anim">Anim</a>s and <a href='#skin'>Skin</a>s with a large amount of data regarding the size, position and functionality of the object<br><br>
+                                <code>.name:string</code>: the name of the sprite<br>
+                                <code>.parent:any</code>: the parent of the sprite, almost always the game variable<br>
+                                <code>.type:string</code>: the type of sprite it is. it could either be "box", "ball", "image", or "text", using their respective scaling options<br>
+                                <code>.location:{ x:number, y:number, z:number, static:boolean }</code>: the name of the sprite<br>
+                                <code>.speed:{ x:number, y:number, base:{ x:number, y:number } }</code>: the speed and base speed of the sprite of the sprite<br>
+                                <code>.velocity:{ x:number, y:number }</code>: the velocity of the sprite<br>
+                                <code>.scale:{ width:number, height:number, naturalWidth:number, naturalHeight:number, radius:number, naturalRadius:number }</code>: the scale data of the sprite<br>
+                                <code>.skins:Skin[]</code>: an array of skins for the sprite if the type is "image"<br>
+                                <code>.colour:{ stroke:string, fill:string }</code>: the outline and fill colours of the sprite, used in types "ball", "rect", and "text"<br>
+                                <code>.hidden:boolean</code>: whether or not the sprite is to be visible<br>
+                                <code>.opacity:string</code>: the alpha value of the sprite, from 0 to 1<br>
+                                <code>.tags:string[]</code>: an array of tags to identify or group the sprite/s<br>
+                                <code>.fillMode:string</code>: <br>
+                                <code>.customProperties:any[]</code>: <br>
+                                <code>.fullConfig:parameters</code>: contains the full initial configuration of the sprite<br>
+                                <code>.fullyLoaded:boolean</code>: if type is "image", then this value will be set to true when the image has loaded<br>
+                                <code>.skin:HTMLImageElement</code>: the current skin to be used if the type is "image"<br>
+                                <code>.animations:Anim[]</code>: a collection of animations to be used if the type is "image"<br>
+                                <code>.text:<a href='#textobject'>TextObject</a></code>: information to be used if the type is "text"<br><br>
+                                
+                                parameters:<ul>
+                                    <li>
+                                        <code>info:</code>{<li>
+                                            <ul>
+                                                <code>name:string</code>: name of the sprite
+                                            </ul>
+                                            <ul>
+                                                <code>type?:string</code>: the type of sprite it is to be, used for drawing and positional/scale data
+                                            </ul>
+                                            <ul>
+                                                <code>skins?:({ name:string, url:string })[]</code>: array of skins
+                                            </ul>
+                                            <ul>
+                                                <code>anims?:Anim[]</code>: array of animations
+                                            </ul>
+                                            <ul>
+                                                <code>text?:{ font?:string, size?:number, content?:string, style?:string }</code>: if the type is text, then this information will be used
+                                            </ul>
+                                            <ul>
+                                                <code>fillMode?:string</code>: if value is "fill", then it will fill whatever shape it might be when drawing as well as drawing the outline
+                                            </ul>
+                                            <ul>
+                                                <code>colour?:{ fill:string, stroke:string }</code>: fill and outline colour of the shape
+                                            </ul>
+                                            <ul>
+                                                <code>speed?:{ x:number, y:number, base:{ x:number, y:number } }</code>: speed and base speed of the sprite
+                                            </ul>
+                                            <ul>
+                                                <code>opacity?:number</code>: opacity of the sprite, from 0 to 1
+                                            </ul>
+                                            <ul>
+                                                <code>hidden?:boolean</code>: whether the sprite is to be drawn or not
+                                            </ul>
+                                            <ul>
+                                                <code>tags?:string[]</code>: array of tags for possible sorting
+                                            </ul>
+                                        </li>}
+                                    </li>
+                                    <li>
+                                        <code>location:{ x?:number, y?:number, z?:number, static?:boolean }</code>: x, y and z coordinates of the sprite, and static being whether it moves with the camera or not
+                                    </li>
+                                    <li>
+                                        <code>scale:{ width?:number|string, height?:number|string, radius?:number }</code>: if width or height is set to "default" and the sprite type is an image, it will set the scale to the width and height of the image
+                                    </li>
+                                </ul>
+                                example:
+                                <!--<div class="example"><code>1| const game = new Game("Example Game", {<br>2| &Tab;onstart:()=>{ console.log("game started"); },<br>3| &Tab;vsync: false,<br>4| &Tab;fps:69<br>5| });</code></div>-->
+                                <br><br>
+                                <a href="#game-functions"><h3 id="gamescreen-functions">Functions</h3></a>
+                            </dt>
+                            <dd>
+                                <dl>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.mainGameLoop(): void</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        updates the delta, redraws entities, and if <code>.running</code> is true, then runs all the game loops<br>
+                                        <code>return</code>: <code>void</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.calculateAverageFps(): number</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        takes the <code>.timeData.fpsArray: number[]</code> array, and calculates the average from each value<br>
+                                        <code>return</code>: <code>number</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.clearFpsArray(): void</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        clears the <code>.timeData.fpsArray: number[]</code> array<br>
+                                        <code>return</code>: <code>void</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.addSprite(sprite: <a href='#sprite'>Sprite</a>): <a href='#sprite'>Sprite</a></code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        adds a sprite to the <code>.entities[]</code> list and returns it<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a></code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.addSprites(...sprites: <a href='#sprite'>Sprite</a>[]): <a href='#sprite'>Sprite</a>[]</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        adds an array of sprites to the <code>.entities[]</code> list and returns all the new sprites<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a>[]</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.removeSprite(sprite: <a href='#sprite'>Sprite</a>|number|string): <a href='#sprite'>Sprite</a>|undefined</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        takes in a sprite index, a sprite name, or a sprite object as a parameter and removes and returns it from the game entities list. if the entity does not exist, then it will return undefined.<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a>|undefined</code>
+                                    </dd>
+                                    
+                                    <dt>
+                                        <h3>
+                                            <code>.removeSprites(...sprites: (<a href='#sprite'>Sprite</a>|number|string)[]): (<a href='#sprite'>Sprite</a>|undefined)[]</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        takes in an array of sprite indexes, names, or sprite objects as a parameter and removes and returns them from the game entities list. if the entities do not exist, then it will return undefined.<br>
+                                        <code>return</code>: <code>(<a href='#sprite'>Sprite</a>|undefined)[]</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.refreshSprite(sprite: <a href='#sprite'>Sprite</a>): <a href='#sprite'>Sprite</a></code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        returns a new exact copy of the sprite given in the parameters<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a></code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.refreshAllSprites(): void</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        loops through the <code>.entities[]</code> array and replaces each with a copy of itself and then draws them<br>
+                                        <code>return</code>: <code>void</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.play(): true</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        sets <code>.running</code> to <code>true</code><br>
+                                        <code>return</code>: <code>true</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.stop(): false</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        sets <code>.running</code> to <code>false</code><br>
+                                        <code>return</code>: <code>false</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.resortByZIndex(): <a href='#sprite'>Sprite</a>[]</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        reorders the entity list based on Z index, so that entities farther back are drawn last<br>
+                                        <code>return</code>: <code><a href='#sprite'>Sprite</a>[]</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.addSetting(name:string, values:any|object={ exampleKey:"example" }): object</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        creates a new setting with a name and any other amount of options and saves it to localStorage as JSON<br>
+                                        <code>return</code>: <code>object</code>
+                                    </dd>
+
+                                    <dt>
+                                        <h3>
+                                            <code>.loadSettings(): object[]</code>
+                                        </h3>
+                                    </dt>
+                                    <dd>
+                                        loads settings from localStorage, sets <code>.settings[]</code> to the results, and returns <code>.settings[]</code><br>
+                                        <code>return</code>: <code>object[]</code>
+                                    </dd>
+
+                                </dl>
+                            </dd>
+                        </dl>
+                    </dd>
+                </dl>
             </p>
+        </div>
+        <div id="right">
+            <!--<img src="piss.png">-->
         </div>
     </body>
 </html>
