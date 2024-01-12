@@ -219,11 +219,12 @@ class Game{
     running: boolean;
     autopause: boolean;
     timeData: { lastTime: number|undefined; delta: number; totalFrames:number, fpsArray:number[] };
-    keysDown: object|any;
+    keysDown: (object|any);
     camera: Camera;
     vsync: boolean;
     fps: number;
     currentKeysDown:any[];
+    latestKeyboardEvent:KeyboardEvent|undefined;
     constructor(name="Example Game", options:gameOptions={}){
         this.name = name;
         this.entities = [];
@@ -271,9 +272,6 @@ class Game{
         // e.code is a string (KeyW, KeyA, etc), so it's setting the keysDown object property of that key to true or false
         document.addEventListener("keydown", (e)=>{
             this.keysDown[e.code] = true;
-            if(this.keysDown[e.code]!==undefined){
-            }else{
-            }
         })
         document.addEventListener("keyup", (e)=>{
             this.keysDown[e.code] = false;
@@ -305,6 +303,33 @@ class Game{
             requestAnimationFrame((now)=>{this.mainGameLoop(now)});
         }
         
+    }
+    addInput(code:string, func:Function){
+        if(this.keysDown[code]!==undefined){
+            this.keysDown[code].onpress = ()=>{
+                if(this.keysDown[code].repeat == false){
+                    if(typeof func=='function'){
+                        func();
+                    }
+                    this.keysDown[code].down = true;
+                }
+            }
+        }else{
+            this.keysDown[code] = {
+                down:false,
+                repeat:false,
+                event:null,
+                code:code,
+                onpress:(func:Function)=>{
+                    if(this.keysDown[code].repeat == false){
+                        if(typeof func=='function'){
+                            func();
+                        }
+                        this.keysDown[code].down = true;
+                    }
+                }
+            }
+        }
     }
     mainGameLoop(now:number){
         this.timeData.totalFrames+=1;
@@ -1170,7 +1195,8 @@ interface animParams{
     parent:Sprite,
     fps?:number,
     frames:skinsInput[],
-    scale?:scale
+    scale?:scale,
+    loop?:boolean
 }
 class Anim{
     parent: Sprite|any;
@@ -1181,9 +1207,11 @@ class Anim{
     timeNeeded:number;
     timeTracker:number;
     paused:boolean;
+    loop:boolean;
     constructor(options:animParams){
         this.parent;
         this.paused = false;
+        this.loop = true;
         this.frames = new Array();
         this.fps = 12;
         this.currentFrame = 0;
@@ -1270,6 +1298,87 @@ class Anim{
         this.parent.skin = this.frames[0].sprite;
         if(play==true){
             this.play();
+        }
+    }
+}
+interface soundClipParameters{
+    name:string,
+    file:string,
+    volume?:number
+}
+class SoundClip{
+    audioAssigned:boolean;
+    audioContext:AudioContext|null;
+    file:string;
+    track:MediaElementAudioSourceNode|null;
+    volume:number;
+    gain:GainNode|null;
+    playing:boolean;
+    el:HTMLAudioElement;
+    constructor(options:soundClipParameters){
+        this.audioAssigned = false;
+        this.audioContext = null;
+        this.file = "";
+        this.track = null;
+        this.volume = 1;
+        this.gain = null;
+        this.playing = false;
+        this.el = document.createElement("audio");
+        if('volume' in options){
+            this.volume = options.volume!;
+        }else{
+            this.volume = 1;
+        }
+        if('file' in options){
+            this.file = options.file!;
+            this.el.src = options.file!;
+        }
+        if('name' in options){
+            this.el.id = options.name;
+        }else{
+            this.el.id = `test${Math.round(Math.random()*1000)}`;
+        }
+        document.body.lastChild!.after(this.el);
+        //this.el = document.querySelector(`#${this.el.id}`);
+        let assignAudioContext = ()=>{
+            if (!this.audioAssigned) {
+                this.audioContext = new AudioContext();
+                this.track = this.audioContext.createMediaElementSource(this.el);
+                this.gain = this.audioContext.createGain();
+                this.track.connect(this.gain).connect(this.audioContext.destination);
+                console.log("sound enabled");
+                this.audioAssigned = true;
+                document.removeEventListener("mousedown", assignAudioContext);
+                document.removeEventListener("mouseup", assignAudioContext);
+                document.removeEventListener("keydown", assignAudioContext);
+                document.removeEventListener("keyup", assignAudioContext);
+            }
+        };
+        document.addEventListener("mousedown", assignAudioContext);
+        document.addEventListener("mouseup", assignAudioContext);
+        document.addEventListener("keydown", assignAudioContext);
+        document.addEventListener("keyup", assignAudioContext);
+    }
+    play(options={
+        time:0.1, 
+        stop:true,
+        fade:true,
+        frequency:440,
+        type:"sine",
+        delay:0.1
+    }){
+        if(this.audioAssigned){
+            this.el.currentTime = 0;
+            this.el.play();
+            this.playing = true;
+        }
+    }
+    stop(){
+        if(this.audioAssigned){
+            if(this.playing){
+                this.playing = false;
+                this.el.pause();
+            }
         }
     }
 }
@@ -1381,78 +1490,5 @@ class SoundWave{
         }
     }
 }
-class SoundClip{
-    constructor(options={
-        name:`test${Math.round(Math.random()*1000)}`,
-        file:undefined,
-        volume:1,
-    }){
-        this.audioAssigned = false;
-        this.audioContext = null;
-        this.file = null;
-        this.track = null;
-        this.volume = 1;
-        this.gain = null;
-        this.playing = false;
-        this.el = document.createElement("audio");
-        if('volume' in options){
-            this.volume = options.volume;
-        }else{
-            this.volume = 1;
-        }
-        if('file' in options){
-            this.file = options.file;
-            this.el.src = options.file;
-        }else{
-            this.file = null;
-        }
-        if('name' in options){
-            this.el.id = options.name;
-        }else{
-            this.el.id = `test${Math.round(Math.random()*1000)}`;
-        }
-        document.body.lastChild.after(this.el);
-        //this.el = document.querySelector(`#${this.el.id}`);
-        let assignAudioContext = ()=>{
-            if (!this.audioAssigned) {
-                this.audioContext = new AudioContext();
-                this.track = this.audioContext.createMediaElementSource(this.el);
-                this.gain = this.audioContext.createGain();
-                this.track.connect(this.gain).connect(this.audioContext.destination);
-                console.log("sound enabled");
-                this.audioAssigned = true;
-                document.removeEventListener("mousedown", assignAudioContext);
-                document.removeEventListener("mouseup", assignAudioContext);
-                document.removeEventListener("keydown", assignAudioContext);
-                document.removeEventListener("keyup", assignAudioContext);
-            }
-        };
-        document.addEventListener("mousedown", assignAudioContext);
-        document.addEventListener("mouseup", assignAudioContext);
-        document.addEventListener("keydown", assignAudioContext);
-        document.addEventListener("keyup", assignAudioContext);
-    }
-    play(options={
-        time:0.1, 
-        stop:true,
-        fade:true,
-        frequency:440,
-        type:"sine",
-        delay:0.1
-    }){
-        if(this.audioAssigned){
-            this.el.currentTime = 0;
-            this.el.play();
-            this.playing = true;
-        }
-    }
-    stop(){
-        if(this.audioAssigned){
-            if(this.playing){
-                this.playing = false;
-                this.el.stop();
-            }
-        }
-    }
-}
+
 */

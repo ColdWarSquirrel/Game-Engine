@@ -230,10 +230,6 @@ class Game {
         // e.code is a string (KeyW, KeyA, etc), so it's setting the keysDown object property of that key to true or false
         document.addEventListener("keydown", (e) => {
             this.keysDown[e.code] = true;
-            if (this.keysDown[e.code] !== undefined) {
-            }
-            else {
-            }
         });
         document.addEventListener("keyup", (e) => {
             this.keysDown[e.code] = false;
@@ -266,6 +262,34 @@ class Game {
         }
         else {
             requestAnimationFrame((now) => { this.mainGameLoop(now); });
+        }
+    }
+    addInput(code, func) {
+        if (this.keysDown[code] !== undefined) {
+            this.keysDown[code].onpress = () => {
+                if (this.keysDown[code].repeat == false) {
+                    if (typeof func == 'function') {
+                        func();
+                    }
+                    this.keysDown[code].down = true;
+                }
+            };
+        }
+        else {
+            this.keysDown[code] = {
+                down: false,
+                repeat: false,
+                event: null,
+                code: code,
+                onpress: (func) => {
+                    if (this.keysDown[code].repeat == false) {
+                        if (typeof func == 'function') {
+                            func();
+                        }
+                        this.keysDown[code].down = true;
+                    }
+                }
+            };
         }
     }
     mainGameLoop(now) {
@@ -1033,6 +1057,7 @@ class Anim {
     constructor(options) {
         this.parent;
         this.paused = false;
+        this.loop = true;
         this.frames = new Array();
         this.fps = 12;
         this.currentFrame = 0;
@@ -1123,6 +1148,76 @@ class Anim {
         this.parent.skin = this.frames[0].sprite;
         if (play == true) {
             this.play();
+        }
+    }
+}
+class SoundClip {
+    constructor(options) {
+        this.audioAssigned = false;
+        this.audioContext = null;
+        this.file = "";
+        this.track = null;
+        this.volume = 1;
+        this.gain = null;
+        this.playing = false;
+        this.el = document.createElement("audio");
+        if ('volume' in options) {
+            this.volume = options.volume;
+        }
+        else {
+            this.volume = 1;
+        }
+        if ('file' in options) {
+            this.file = options.file;
+            this.el.src = options.file;
+        }
+        if ('name' in options) {
+            this.el.id = options.name;
+        }
+        else {
+            this.el.id = `test${Math.round(Math.random() * 1000)}`;
+        }
+        document.body.lastChild.after(this.el);
+        //this.el = document.querySelector(`#${this.el.id}`);
+        let assignAudioContext = () => {
+            if (!this.audioAssigned) {
+                this.audioContext = new AudioContext();
+                this.track = this.audioContext.createMediaElementSource(this.el);
+                this.gain = this.audioContext.createGain();
+                this.track.connect(this.gain).connect(this.audioContext.destination);
+                console.log("sound enabled");
+                this.audioAssigned = true;
+                document.removeEventListener("mousedown", assignAudioContext);
+                document.removeEventListener("mouseup", assignAudioContext);
+                document.removeEventListener("keydown", assignAudioContext);
+                document.removeEventListener("keyup", assignAudioContext);
+            }
+        };
+        document.addEventListener("mousedown", assignAudioContext);
+        document.addEventListener("mouseup", assignAudioContext);
+        document.addEventListener("keydown", assignAudioContext);
+        document.addEventListener("keyup", assignAudioContext);
+    }
+    play(options = {
+        time: 0.1,
+        stop: true,
+        fade: true,
+        frequency: 440,
+        type: "sine",
+        delay: 0.1
+    }) {
+        if (this.audioAssigned) {
+            this.el.currentTime = 0;
+            this.el.play();
+            this.playing = true;
+        }
+    }
+    stop() {
+        if (this.audioAssigned) {
+            if (this.playing) {
+                this.playing = false;
+                this.el.pause();
+            }
         }
     }
 }
