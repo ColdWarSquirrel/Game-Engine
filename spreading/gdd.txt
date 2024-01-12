@@ -1,0 +1,8 @@
+GAME DESIGN DOCUMENT FOR A GAME ABOUT SOMETHING ABOUT SPREADING!!!
+
+
+basic ideas:
+- zombie game, but you are the zombie
+- you play as a virus infecting a guy's body
+- your grandma died and you're tasked with spreading the ashes
+- a person inhales their grandmas ashes by accident and they get an infection, and the bacteria you play as looks like their zombie grandma
