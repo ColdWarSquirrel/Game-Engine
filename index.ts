@@ -1,41 +1,25 @@
 "use strict";
+
+import * as Cake from './GameEngineInterfaces';
+
 // omg starting commenting months after making it wow holy moly I mean whoa
 
-// oooo spooky ts-ignore
-// @ts-ignore
-const defaults = {
-    screen:{
-        background:"#FFFFFF"
-    }
-};
-
 // just for shorthand access by a few characters, also makes more sense to read
-var viewport = {
+export var viewport = {
     width:window.innerWidth,
     height:window.innerHeight
 };
-interface Vector2D{
-    x:number,
-    y:number
-};
-interface GameScreenOptions{
-    width?:number, 
-    height?:number, 
-    canvas?:HTMLCanvasElement|string,
-    backgroundColour?:string,
-    fullscreen?:boolean
-}
 class GameScreen{
     documentObject:HTMLCanvasElement|any;
     background:string;
     ctx:CanvasRenderingContext2D;
-    mousePos:Vector2D;
+    mousePos:Cake.Vector2D;
     width:number;
     height:number;
     naturalWidth:number;
     naturalHeight:number;
     fullscreen:boolean;
-    constructor(options:GameScreenOptions) // switch to single parameter called options at some point
+    constructor(options:Cake.GameScreenOptions) // switch to single parameter called options at some point
     {
         // this doesn't really need to be here, since it's likely I'll already have a canvas anyway, but merrrr
         this.width = viewport.width;
@@ -122,23 +106,14 @@ class GameScreen{
         return this.fullscreen;
     }
 }
-let gameScreen:GameScreen = new GameScreen({width:700,height:700});
-interface cameraParameters{
-    scale?:{
-        width:number|string,
-        height:number|string,
-    },
-    location?:Vector2D,
-    name?:string,
-    entities?:Sprite[]|any[]
-}
-class Camera{
+export let gameScreen:GameScreen = new GameScreen({width:700,height:700});
+export class Camera{
     name: string;
-    scale:scale;
+    scale:Cake.scale;
     parent:any;
-    location:Vector2D;
+    location:Cake.Vector2D;
     entityList:Sprite[]|any[];
-    constructor(options:cameraParameters){
+    constructor(options:Cake.cameraParameters){
         let width = options?.scale?.width ?? "full";
         let height = options?.scale?.height ?? "full";
         let name = options?.name ?? "Camera";
@@ -171,13 +146,13 @@ class Camera{
         this.parent = parent;
     }
     isEntityVisible(sprite:Sprite){
-        let rect1:collisionRect = {
+        let rect1:Cake.collisionRect = {
             x: this.location.x,
             y: this.location.y,
             w: this.scale.width,
             h: this.scale.height,
         };
-        let rect2:collisionRect = {
+        let rect2:Cake.collisionRect = {
             x: sprite.location.x,
             y: sprite.location.y,
             w: sprite.scale.width,
@@ -206,14 +181,9 @@ class Camera{
         return true;
     }
 }
-interface gameOptions{
-    onstart?:Function,
-    vsync?:boolean,
-    fps?:number
-}
-class Game{
+export class Game{
     name: string;
-    entities: Sprite[];
+    entities: Sprite[]|any[];
     mainLoopFunctions: {():any}[];
     settings: {name:string,[key:string]:any}[];
     running: boolean;
@@ -225,7 +195,7 @@ class Game{
     fps: number;
     currentKeysDown:any[];
     latestKeyboardEvent:KeyboardEvent|undefined;
-    constructor(name="Example Game", options:gameOptions={}){
+    constructor(name="Example Game", options:Cake.gameOptions){
         this.name = name;
         this.entities = [];
         this.mainLoopFunctions = [];
@@ -377,7 +347,21 @@ class Game{
         this.entities[this.entities.length-1].parent = this;
         return this.entities[this.entities.length-1];
     }
+    addCustomSprite(sprite:any){
+        this.entities.push(sprite);
+        this.camera.entityList = this.entities;
+        this.entities[this.entities.length-1].parent = this;
+        return this.entities[this.entities.length-1];
+    }
     addSprites(...sprites:Sprite[]){
+        for(let i = 0; i < sprites.length; i++){
+            sprites[i].parent = this;
+        }
+        this.entities = this.entities.concat(sprites);
+        this.camera.entityList = this.entities;
+        return this.entities.slice(-sprites.length);
+    }
+    addCustomSprites(...sprites:any[]){
         for(let i = 0; i < sprites.length; i++){
             sprites[i].parent = this;
         }
@@ -408,7 +392,7 @@ class Game{
                 })[0];
             }
             if(sprite!==undefined){
-                return game.entities.splice(index,1);
+                return this.entities.splice(index,1);
             }else{
                 return undefined;
             }
@@ -455,6 +439,13 @@ class Game{
         })
         return this.entities;
     }
+    getSetting(name:string){
+        if(this.settings.length>0){
+            return this.settings.filter(obj => {
+                return obj.name === name;
+            })[0];
+        }
+    }
     addSetting(name:string="greg", values:any|object={ key:"example", otherkey:"another example" }){
         let setting:any = {};
         setting['name'] = name;
@@ -481,97 +472,97 @@ class Game{
         return this.settings;
     }
 }
-interface skinsInput{
-    name:string,
-    url:string,
-    sprite?:HTMLImageElement,
-    scale?:{
-        width:number,
-        height:number,
-        naturalWidth?:number,
-        naturalHeight?:number
-    }
-}
-interface skinsMoInfo{
-    name:string,
-    url:string,
-    sprite:HTMLImageElement,
-    scale:{
-        width:number,
-        height:number,
-        naturalWidth:number,
-        naturalHeight:number
-    }
-}
 // now we get into the meat of it
-interface spriteParameters{
-    info:{
-        name:string,
-        skins?:skinsInput[],
-        anims?:Anim[],
-        text?:{
-            font?:string,
-            size?:number,
-            content?:string,
-            style?:string
+class physicsObject{
+    mass:number;
+    position:Cake.Vector2D;
+    velocity:Cake.Vector2D;
+    scale:{width:number,height:number};
+    gravity:number;
+    momentOfInertia:number;
+    constructor(options:{
+        position?:Cake.Vector2D,
+        velocity?:Cake.Vector2D,
+        mass?:number,
+        scale?:{width:number,height:number}
+    }){
+        this.scale = {
+            width:0,
+            height:0
         }
-        type:string,
-        fillMode?:string,
-        colour?:{
-            fill:string,
-            stroke:string
-        },
-        speed?:{
-            x:number,
-            y:number,
-            base?:{
-                x:number,
-                y:number
+        this.gravity = -9.81;
+        this.mass = 10;
+        this.position = {
+            x:0,
+            y:0
+        }
+        this.velocity = {
+            x:0,
+            y:0
+        }
+        if('mass' in options){
+            this.mass = options.mass!;
+        }
+        if('position' in options){
+            if('x' in options.position!){
+                this.position.x = options.position!.x;
             }
-        },
-        opacity?:number,
-        hidden?:boolean,
-        tags?:Array<string>
-    }, 
-    location:{
-        x:number,
-        y:number,
-        z?:number,
-        static?:boolean
-    }, 
-    scale:{
-        width?:number|string,
-        height?:number|string,
-        radius?:number
+            if('y' in options.position!){
+                this.position.y = options.position!.y;
+            }
+        }
+        if('velocity' in options){
+            if('x' in options.velocity!){
+                this.velocity.x = options.velocity!.x;
+            }
+            if('y' in options.velocity!){
+                this.velocity.y = options.velocity!.y;
+            }
+        }
+        if('scale' in options){
+            if('width' in options.scale!){
+                this.scale.width = options.scale!.width;
+            }
+            if('height' in options.scale!){
+                this.scale.height = options.scale!.height;
+            }
+        }
+        this.momentOfInertia = this.calculateBoxInertia();
+    }
+    calculateBoxInertia() {
+        let m:number = this.mass;
+        let w:number = this.scale.width;
+        let h:number = this.scale.height;
+        return m * (w * w + h * h) / 12;
+    }
+    calculateForce(){
+        return <Cake.Vector2D>{
+            x:0,
+            y:this.mass*this.gravity
+        }
     }
 }
-interface collisionRect{
-    x: number,
-    y: number,
-    w: number,
-    h: number
-}
-class Sprite{
+export class Sprite{
     name: string;
     parent:any;
     type: string;
     location: { x: number; y: number; z: number; static?:boolean; };
-    speed: { x: number; y: number; base: Vector2D; };
-    velocity: Vector2D;
+    speed: { x: number; y: number; base: Cake.Vector2D; };
+    velocity: Cake.Vector2D;
     scale: { width: number; height: number; naturalWidth: number; naturalHeight: number; radius: number; naturalRadius: number; };
-    skins: skinsInput[];
+    skins: Cake.skinsInput[];
     colour: { fill: string; stroke: string; };
     hidden: boolean;
     opacity: number;
     tags: string[];
     fillMode: string;
     customProperties: any[];
-    fullConfig: spriteParameters;
+    fullConfig: Cake.spriteParameters;
     fullyLoaded: boolean;
     skin: HTMLImageElement;
     animations: Anim[]|[];
     text?:TextObject;
-    constructor(options:spriteParameters, customProperties:any[]=[]){
+    constructor(options:Cake.spriteParameters, customProperties:any[]=[]){
         // setting defaults at beginning instead of as a contingency, also less else statements (less confusing to read)
         this.name = "John Derp";
         this.type = "box";
@@ -614,7 +605,7 @@ class Sprite{
         this.tags = [];
         this.fillMode = "fill";
         this.customProperties = customProperties;
-        this.fullConfig = <spriteParameters>options;
+        this.fullConfig = <Cake.spriteParameters>options;
         this.fullyLoaded = false;
         
         // hot disgusting mess of if statements
@@ -905,13 +896,13 @@ class Sprite{
         }
     }
     isInside(sprite:Sprite){
-        let rect1:collisionRect = {
+        let rect1:Cake.collisionRect = {
             x: this.location.x,
             y: this.location.y,
             w: this.scale.width,
             h: this.scale.height,
         };
-        let rect2:collisionRect = {
+        let rect2:Cake.collisionRect = {
             x: sprite.location.x,
             y: sprite.location.y,
             w: sprite.scale.width,
@@ -945,13 +936,13 @@ class Sprite{
         return true;
     }
     isColliding(sprite:Sprite){
-        let rect1:collisionRect = {
+        let rect1:Cake.collisionRect = {
             x: this.location.x,
             y: this.location.y,
             w: this.scale.width,
             h: this.scale.height,
         };
-        let rect2:collisionRect = {
+        let rect2:Cake.collisionRect = {
             x: sprite.location.x,
             y: sprite.location.y,
             w: sprite.scale.width,
@@ -1032,11 +1023,11 @@ class Sprite{
     }
     isCoordsOver(x:number,y:number){
         let minSelf = this.location;
-        let maxSelf:Vector2D = {
+        let maxSelf:Cake.Vector2D = {
             x:this.location.x+this.scale.width,
             y:this.location.y+this.scale.height
         }
-        let target:Vector2D = {
+        let target:Cake.Vector2D = {
             x:x,
             y:y
         }
@@ -1048,31 +1039,7 @@ class Sprite{
         }
     }
 }
-interface scale{
-    width:number,
-    height:number
-}
-interface skinParameters{
-    name:string,
-    url:string,
-    scale?:{
-        width:number|string,
-        height:number|string
-    }
-}
-interface textParameters{
-    parent:Sprite;
-    name?:string,
-    content?:string,
-    font?:string,
-    colour?:{
-        stroke:string,
-        fill:string
-    },
-    size?:number,
-    location?:Vector2D
-}
-class TextObject{
+export class TextObject{
     parent:Sprite;
     name:string;
     font:string;
@@ -1082,8 +1049,8 @@ class TextObject{
         stroke:string,
         fill:string
     };
-    location:Vector2D;
-    constructor(options:textParameters){
+    location:Cake.Vector2D;
+    constructor(options:Cake.textParameters){
         this.name = "text";
         this.parent = options.parent;
         this.content = "Example";
@@ -1135,12 +1102,12 @@ class TextObject{
         return [this.content, this.location.x, this.location.y];
     }
 }
-class Skin{
+export class Skin{
     name: string;
     url: string;
     sprite: HTMLImageElement;
     scale: { width: number; height: number; naturalWidth: number; naturalHeight: number; };
-    constructor(options:skinParameters,onload?:Function){
+    constructor(options:Cake.skinParameters,onload?:Function){
         this.name = "Example",
         this.url = "",
         this.sprite = new Image(),
@@ -1191,14 +1158,7 @@ class Skin{
         }
     }
 }
-interface animParams{
-    parent:Sprite,
-    fps?:number,
-    frames:skinsInput[],
-    scale?:scale,
-    loop?:boolean
-}
-class Anim{
+export class Anim{
     parent: Sprite|any;
     frames: any[];
     fps: number;
@@ -1208,7 +1168,8 @@ class Anim{
     timeTracker:number;
     paused:boolean;
     loop:boolean;
-    constructor(options:animParams){
+    onend:Function;
+    constructor(options:Cake.animParams){
         this.parent;
         this.paused = false;
         this.loop = true;
@@ -1217,11 +1178,18 @@ class Anim{
         this.currentFrame = 0;
         this.timeNeeded = 0;
         this.timeTracker = 0;
+        this.onend = ()=>{};
         this.scale = {
             width:"default",
             height:"default",
             naturalWidth:0,
             naturalHeight:0
+        }
+        if('loop' in options){
+            this.loop = options.loop!;
+        }
+        if('onend' in options){
+            this.onend = options.onend!;
         }
         if('parent' in options){
             this.parent = options.parent!;
@@ -1273,11 +1241,21 @@ class Anim{
                 this.timeTracker = 0;
                 this.currentFrame+=1;
                 if(this.frames[this.currentFrame]==undefined){
-                    this.currentFrame = 0;
+                    if(this.loop == true){
+                        this.currentFrame = 0;
+                    }else{
+                        this.pause();
+                        this.setParentSkin();
+                        this.onend();
+                    }
                 }
-                this.parent.skin = this.frames[this.currentFrame].sprite;
+                this.setParentSkin();
             }
         }
+    }
+    setParentSkin(frame?:number){
+        let f = frame ?? this.currentFrame; 
+        this.parent.skin = this.frames[f].sprite;
     }
     isPlaying(){
         return !this.paused;
@@ -1301,12 +1279,7 @@ class Anim{
         }
     }
 }
-interface soundClipParameters{
-    name:string,
-    file:string,
-    volume?:number
-}
-class SoundClip{
+export class SoundClip{
     audioAssigned:boolean;
     audioContext:AudioContext|null;
     file:string;
@@ -1315,7 +1288,7 @@ class SoundClip{
     gain:GainNode|null;
     playing:boolean;
     el:HTMLAudioElement;
-    constructor(options:soundClipParameters){
+    constructor(options:Cake.soundClipParameters){
         this.audioAssigned = false;
         this.audioContext = null;
         this.file = "";

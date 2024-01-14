@@ -1,18 +1,10 @@
 "use strict";
 // omg starting commenting months after making it wow holy moly I mean whoa
-// oooo spooky ts-ignore
-// @ts-ignore
-const defaults = {
-    screen: {
-        background: "#FFFFFF"
-    }
-};
 // just for shorthand access by a few characters, also makes more sense to read
-var viewport = {
+export var viewport = {
     width: window.innerWidth,
     height: window.innerHeight
 };
-;
 class GameScreen {
     constructor(options) {
         // this doesn't really need to be here, since it's likely I'll already have a canvas anyway, but merrrr
@@ -103,8 +95,8 @@ class GameScreen {
         return this.fullscreen;
     }
 }
-let gameScreen = new GameScreen({ width: 700, height: 700 });
-class Camera {
+export let gameScreen = new GameScreen({ width: 700, height: 700 });
+export class Camera {
     constructor(options) {
         var _a, _b, _c, _d, _e, _f;
         let width = (_b = (_a = options === null || options === void 0 ? void 0 : options.scale) === null || _a === void 0 ? void 0 : _a.width) !== null && _b !== void 0 ? _b : "full";
@@ -181,8 +173,8 @@ class Camera {
         return true;
     }
 }
-class Game {
-    constructor(name = "Example Game", options = {}) {
+export class Game {
+    constructor(name = "Example Game", options) {
         this.name = name;
         this.entities = [];
         this.mainLoopFunctions = [];
@@ -341,7 +333,21 @@ class Game {
         this.entities[this.entities.length - 1].parent = this;
         return this.entities[this.entities.length - 1];
     }
+    addCustomSprite(sprite) {
+        this.entities.push(sprite);
+        this.camera.entityList = this.entities;
+        this.entities[this.entities.length - 1].parent = this;
+        return this.entities[this.entities.length - 1];
+    }
     addSprites(...sprites) {
+        for (let i = 0; i < sprites.length; i++) {
+            sprites[i].parent = this;
+        }
+        this.entities = this.entities.concat(sprites);
+        this.camera.entityList = this.entities;
+        return this.entities.slice(-sprites.length);
+    }
+    addCustomSprites(...sprites) {
         for (let i = 0; i < sprites.length; i++) {
             sprites[i].parent = this;
         }
@@ -374,7 +380,7 @@ class Game {
                 })[0];
             }
             if (sprite !== undefined) {
-                return game.entities.splice(index, 1);
+                return this.entities.splice(index, 1);
             }
             else {
                 return undefined;
@@ -426,6 +432,13 @@ class Game {
         });
         return this.entities;
     }
+    getSetting(name) {
+        if (this.settings.length > 0) {
+            return this.settings.filter(obj => {
+                return obj.name === name;
+            })[0];
+        }
+    }
     addSetting(name = "greg", values = { key: "example", otherkey: "another example" }) {
         let setting = {};
         setting['name'] = name;
@@ -452,7 +465,66 @@ class Game {
         return this.settings;
     }
 }
-class Sprite {
+// now we get into the meat of it
+class physicsObject {
+    constructor(options) {
+        this.scale = {
+            width: 0,
+            height: 0
+        };
+        this.gravity = -9.81;
+        this.mass = 10;
+        this.position = {
+            x: 0,
+            y: 0
+        };
+        this.velocity = {
+            x: 0,
+            y: 0
+        };
+        if ('mass' in options) {
+            this.mass = options.mass;
+        }
+        if ('position' in options) {
+            if ('x' in options.position) {
+                this.position.x = options.position.x;
+            }
+            if ('y' in options.position) {
+                this.position.y = options.position.y;
+            }
+        }
+        if ('velocity' in options) {
+            if ('x' in options.velocity) {
+                this.velocity.x = options.velocity.x;
+            }
+            if ('y' in options.velocity) {
+                this.velocity.y = options.velocity.y;
+            }
+        }
+        if ('scale' in options) {
+            if ('width' in options.scale) {
+                this.scale.width = options.scale.width;
+            }
+            if ('height' in options.scale) {
+                this.scale.height = options.scale.height;
+            }
+        }
+        this.momentOfInertia = this.calculateBoxInertia();
+    }
+    calculateBoxInertia() {
+        let m = this.mass;
+        let w = this.scale.width;
+        let h = this.scale.height;
+        return m * (w * w + h * h) / 12;
+    }
+    calculateForce() {
+        return {
+            x: 0,
+            y: this.mass * this.gravity
+        };
+    }
+}
+export class Sprite {
     constructor(options, customProperties = []) {
         var _a, _b, _c, _d, _e, _f, _g;
         // setting defaults at beginning instead of as a contingency, also less else statements (less confusing to read)
@@ -945,7 +1017,7 @@ class Sprite {
         }
     }
 }
-class TextObject {
+export class TextObject {
     constructor(options) {
         this.name = "text";
         this.parent = options.parent;
@@ -998,7 +1070,7 @@ class TextObject {
         return [this.content, this.location.x, this.location.y];
     }
 }
-class Skin {
+export class Skin {
     constructor(options, onload) {
         this.name = "Example",
             this.url = "",
@@ -1053,7 +1125,7 @@ class Skin {
         }
     }
 }
-class Anim {
+export class Anim {
     constructor(options) {
         this.parent;
         this.paused = false;
@@ -1063,12 +1135,19 @@ class Anim {
         this.currentFrame = 0;
         this.timeNeeded = 0;
         this.timeTracker = 0;
+        this.onend = () => { };
         this.scale = {
             width: "default",
             height: "default",
             naturalWidth: 0,
             naturalHeight: 0
         };
+        if ('loop' in options) {
+            this.loop = options.loop;
+        }
+        if ('onend' in options) {
+            this.onend = options.onend;
+        }
         if ('parent' in options) {
             this.parent = options.parent;
             if ('fps' in options) {
@@ -1123,11 +1202,22 @@ class Anim {
                 this.timeTracker = 0;
                 this.currentFrame += 1;
                 if (this.frames[this.currentFrame] == undefined) {
-                    this.currentFrame = 0;
+                    if (this.loop == true) {
+                        this.currentFrame = 0;
+                    }
+                    else {
+                        this.pause();
+                        this.setParentSkin();
+                        this.onend();
+                    }
                 }
-                this.parent.skin = this.frames[this.currentFrame].sprite;
+                this.setParentSkin();
             }
         }
+    }
+    setParentSkin(frame) {
+        let f = frame !== null && frame !== void 0 ? frame : this.currentFrame;
+        this.parent.skin = this.frames[f].sprite;
     }
     isPlaying() {
         return !this.paused;
@@ -1151,7 +1241,7 @@ class Anim {
         }
     }
 }
-class SoundClip {
+export class SoundClip {
     constructor(options) {
         this.audioAssigned = false;
         this.audioContext = null;
