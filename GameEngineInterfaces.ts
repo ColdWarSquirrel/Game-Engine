@@ -1,4 +1,4 @@
-import {Sprite, Anim, Skin, Camera, TextObject} from './index';
+import {Sprite, Anim, Skin, Camera, TextObject} from './engine';
 export interface Vector2D{
     x:number,
     y:number
@@ -113,4 +113,9 @@ export interface cameraParameters{
     location?:Vector2D,
     name?:string,
     entities?:Sprite[]|any[]
+}
+export interface gameOptions{
+    onstart?:Function,
+    vsync?:boolean,
+    fps?:number
 }
