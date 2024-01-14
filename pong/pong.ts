@@ -1,22 +1,26 @@
 "use strict";
-let minScreenSize = Math.min(viewport.width,viewport.height);
-let maxScreenSize = Math.max(viewport.width,viewport.height);
+
+import * as Engine from '../index';
+import * as Cake from '../GameEngineInterfaces';
+
+let minScreenSize = Math.min(Engine.viewport.width,Engine.viewport.height);
+let maxScreenSize = Math.max(Engine.viewport.width,Engine.viewport.height);
 let screenSize = {
     x:0,
     y:0
 }
-if(minScreenSize==viewport.width){
-    screenSize.x = viewport.width;
-    screenSize.y = (viewport.width+viewport.height/2);
-}else if(minScreenSize==viewport.height){
-    screenSize.x = (viewport.width+viewport.height/2);
-    screenSize.y = viewport.height;
+if(minScreenSize==Engine.viewport.width){
+    screenSize.x = Engine.viewport.width;
+    screenSize.y = (Engine.viewport.width+Engine.viewport.height/2);
+}else if(minScreenSize==Engine.viewport.height){
+    screenSize.x = (Engine.viewport.width+Engine.viewport.height/2);
+    screenSize.y = Engine.viewport.height;
 }
 screenSize = {
     x:(screenSize.x>700 ? 700 : screenSize.x),
     y:(screenSize.y>700 ? 700 : screenSize.y)
 }
-gameScreen.resize(screenSize.x,screenSize.y);
+Engine.gameScreen.resize(screenSize.x,screenSize.y);
 // @ts-ignore
 const game = new Game("Pong", ()=>{
     console.log("game started");
@@ -27,7 +31,7 @@ let paddleSize = {
 }
 let soundsOn = false;
 // @ts-ignore
-const player = game.addSprite(new Sprite({
+const player = game.addSprite(new Engine.Sprite({
     info:{
         name:"player",
         type:"box",
@@ -37,12 +41,12 @@ const player = game.addSprite(new Sprite({
         },
         speed:{
             x:300,
-            y:gameScreen.height
+            y:Engine.gameScreen.height
         }
     },
     location:{
         x:20,
-        y:(gameScreen.height*0.5)-100
+        y:(Engine.gameScreen.height*0.5)-100
     },
     scale:{
         width:paddleSize.width,
@@ -59,7 +63,7 @@ const player = game.addSprite(new Sprite({
     }
 ]));
 
-const enemy = game.addSprite(new Sprite({
+const enemy = game.addSprite(new Engine.Sprite({
     info:{
         name:"enemy",
         type:"box",
@@ -73,15 +77,15 @@ const enemy = game.addSprite(new Sprite({
         }
     },
     location:{
-        x:gameScreen.width-paddleSize.width-20,
-        y:(gameScreen.height*0.5)-(paddleSize.height/2)
+        x:Engine.gameScreen.width-paddleSize.width-20,
+        y:(Engine.gameScreen.height*0.5)-(paddleSize.height/2)
     },
     scale:{
         width:paddleSize.width,
         height:paddleSize.height
     }
 }));
-const ball = game.addSprite(new Sprite({
+const ball = game.addSprite(new Engine.Sprite({
     info:{
         name:"ball",
         type:"ball",
@@ -90,13 +94,13 @@ const ball = game.addSprite(new Sprite({
             fill:"red"
         },
         speed:{
-            x:gameScreen.width/5 < 150 ? 150 : gameScreen.width/5,
+            x:Engine.gameScreen.width/5 < 150 ? 150 : Engine.gameScreen.width/5,
             y:150
         }
     },
     location:{
-        x:gameScreen.width/2,
-        y:gameScreen.height/2
+        x:Engine.gameScreen.width/2,
+        y:Engine.gameScreen.height/2
     },
     scale:{
         radius:15
@@ -107,7 +111,7 @@ const ball = game.addSprite(new Sprite({
         value:700
     }
 ]));
-const invisBall = game.addSprite(new Sprite({
+const invisBall = game.addSprite(new Engine.Sprite({
     info:{
         name:"invis ball",
         type:"ball",
@@ -119,8 +123,8 @@ const invisBall = game.addSprite(new Sprite({
         }
     },
     location:{
-        x:gameScreen.width/2,
-        y:gameScreen.height/2
+        x:Engine.gameScreen.width/2,
+        y:Engine.gameScreen.height/2
     },
     scale:{
         radius:15
@@ -132,7 +136,7 @@ const invisBall = game.addSprite(new Sprite({
         finished:false
     }
 ]));
-const mutedIcon = game.addSprite(new Sprite({
+const mutedIcon = game.addSprite(new Engine.Sprite({
     info:{
         name:"muted icon",
         type:"image",
@@ -148,7 +152,7 @@ const mutedIcon = game.addSprite(new Sprite({
         height:35
     }
 }));
-const speakerIcon = game.addSprite(new Sprite({
+const speakerIcon = game.addSprite(new Engine.Sprite({
     info:{
         name:"speaker icon",
         type:"image",
@@ -163,7 +167,7 @@ const speakerIcon = game.addSprite(new Sprite({
         height:35
     }
 }));
-const pauseIcon = game.addSprite(new Sprite({
+const pauseIcon = game.addSprite(new Engine.Sprite({
     info:{
         name:"pause icon",
         type:"image",
@@ -172,12 +176,12 @@ const pauseIcon = game.addSprite(new Sprite({
         opacity:0.5
     },
     location:{
-        x:(gameScreen.width/2)-((gameScreen.width*0.75)/2),
-        y:(gameScreen.height/2)-((gameScreen.height*0.75)/2)
+        x:(Engine.gameScreen.width/2)-((Engine.gameScreen.width*0.75)/2),
+        y:(Engine.gameScreen.height/2)-((Engine.gameScreen.height*0.75)/2)
     },
     scale:{
-        width:gameScreen.width*0.75,
-        height:gameScreen.height*0.75
+        width:Engine.gameScreen.width*0.75,
+        height:Engine.gameScreen.height*0.75
     }
 }));
 /*
@@ -215,15 +219,9 @@ ball.velocity = {
 }
 let colSwitch = false;
 game.loadSettings();
-let score = game.settings.filter(obj => {
-    return obj.name === "Score";
-})[0];
-let muted = game.settings.filter(obj => {
-    return obj.name === "Muted";
-})[0];
-let mode = game.settings.filter(obj => {
-    return obj.name === "Mode";
-})[0];
+let score = game.getSetting("Score");
+let muted = game.getSetting("Muted");
+let mode = game.getSetting("Mode");
 let maxBallSpeed = ball.customProperties[0];
 if(typeof score !== 'object'){
     score = game.addSetting("Score",{
@@ -261,9 +259,8 @@ if(typeof muted !== 'object'){
     })
 }
 muted.is = false;
-let isPlayerMoving = player.customProperties.filter(obj => {
-    return obj.name === "isMoving";
-})[0];
+let isPlayerMoving = player.getProperty("isMoving");
+
 /*
 sounds.bounce.onload(()=>{
     mutedIcon.hidden = true;
@@ -284,29 +281,29 @@ game.mainLoopFunctions.push(function(){
         if(game.keysDown.KeyW==true){
             if(player.location.y > 0){
                 player.location.y += (-player.speed.y * delta);
-                gameScreen.mousePos.y = (player.location.y+(<number>player.scale.height/2));
+                Engine.gameScreen.mousePos.y = (player.location.y+(<number>player.scale.height/2));
             }
         }
         if(game.keysDown.KeyW==true){
-            if((player.location.y+<number>player.scale.height) < gameScreen.height){
+            if((player.location.y+<number>player.scale.height) < Engine.gameScreen.height){
                 player.location.y += (player.speed.y * delta);
-                gameScreen.mousePos.y = (player.location.y+(<number>player.scale.height/2));
+                Engine.gameScreen.mousePos.y = (player.location.y+(<number>player.scale.height/2));
             }
         }
         else{
-            if(!(gameScreen.mousePos.y+(<number>player.scale.height/2) > gameScreen.height || gameScreen.mousePos.y-(<number>player.scale.height/2) < 0)){
-                player.location.y = (gameScreen.mousePos.y-(<number>player.scale.height/2));
+            if(!(Engine.gameScreen.mousePos.y+(<number>player.scale.height/2) > Engine.gameScreen.height || Engine.gameScreen.mousePos.y-(<number>player.scale.height/2) < 0)){
+                player.location.y = (Engine.gameScreen.mousePos.y-(<number>player.scale.height/2));
             }else{
-                if(gameScreen.mousePos.y+(<number>player.scale.height/2) > gameScreen.height){
-                    player.location.y = gameScreen.height-(<number>player.scale.height);
-                }else if(gameScreen.mousePos.y-(<number>player.scale.height/2) < 0){
+                if(Engine.gameScreen.mousePos.y+(<number>player.scale.height/2) > Engine.gameScreen.height){
+                    player.location.y = Engine.gameScreen.height-(<number>player.scale.height);
+                }else if(Engine.gameScreen.mousePos.y-(<number>player.scale.height/2) < 0){
                     player.location.y = 0;
                 }
             }
         }
     }else if(mode.players==0){
         player.speed.y = player.speed.base.y+((ball.speed.x+ball.speed.y)*0.5)*0.1;
-        if(ball.location.x<gameScreen.width*0.666){
+        if(ball.location.x<Engine.gameScreen.width*0.666){
             let adjustedPlayerLocation = {
                 x:player.location.x+(<number>player.scale.width/2),
                 y:player.location.y+(<number>player.scale.height/2)
@@ -323,7 +320,7 @@ game.mainLoopFunctions.push(function(){
     }
     if(mode.players<2){
         enemy.speed.y = enemy.speed.base.y+((ball.speed.x+ball.speed.y)*0.5)*0.1;
-        if(ball.location.x>gameScreen.width/3){
+        if(ball.location.x>Engine.gameScreen.width/3){
             let adjustedEnemyLocation = {
                 x:enemy.location.x+(<number>enemy.scale.width/2),
                 y:enemy.location.y+(<number>enemy.scale.height/2)
@@ -333,22 +330,22 @@ game.mainLoopFunctions.push(function(){
                     enemy.location.y += (-enemy.speed.y * delta);
                 }
             }else if(Math.floor(adjustedEnemyLocation.y) < (Math.floor(ball.location.y))){
-                if((enemy.location.y+<number>enemy.scale.height) < gameScreen.height){
+                if((enemy.location.y+<number>enemy.scale.height) < Engine.gameScreen.height){
                     enemy.location.y += (enemy.speed.y * delta);
                 }
             }
         }
     }
     isPlayerMoving.value = (player.location.y!==isPlayerMoving.lastPos) ? true : false;
-    if((ball.location.x+ball.scale.radius)>=gameScreen.width/2){
+    if((ball.location.x+ball.scale.radius)>=Engine.gameScreen.width/2){
         isColliding = ball.isColliding(enemy);
         colWith = "enemy";
     }else{
         isColliding = ball.isColliding(player);
         colWith = "player";
     }
-    if(ball.location.x<=0+(ball.scale.radius) || ball.location.x >= gameScreen.width - (ball.scale.radius)){ // wins or loses
-        if(ball.location.x >= gameScreen.width - (ball.scale.radius)){
+    if(ball.location.x<=0+(ball.scale.radius) || ball.location.x >= Engine.gameScreen.width - (ball.scale.radius)){ // wins or loses
+        if(ball.location.x >= Engine.gameScreen.width - (ball.scale.radius)){
             if(!muted.is){
                 /*
                 sounds.bounce.play({
@@ -380,8 +377,8 @@ game.mainLoopFunctions.push(function(){
             setScore();
         }
         ball.location = {
-            x:gameScreen.width/2,
-            y:gameScreen.height/2,
+            x:Engine.gameScreen.width/2,
+            y:Engine.gameScreen.height/2,
             z:0
         }
         ball.velocity = {
@@ -389,9 +386,9 @@ game.mainLoopFunctions.push(function(){
             y:rand>=0.5 ? -1 : 1
         }
         ball.speed.y = ball.speed.base.y + (rand * 50);
-        enemy.location.y = (gameScreen.height/2)-(<number>enemy.scale.height/2);
+        enemy.location.y = (Engine.gameScreen.height/2)-(<number>enemy.scale.height/2);
         if(mode.players<1){
-            player.location.y = (gameScreen.height/2)-(<number>player.scale.height/2);
+            player.location.y = (Engine.gameScreen.height/2)-(<number>player.scale.height/2);
         }
     }else{
         if (isColliding) {
@@ -436,7 +433,7 @@ game.mainLoopFunctions.push(function(){
         }else{
             colSwitch = false;
         }
-        if(ball.location.y <= 0+(ball.scale.radius) || ball.location.y >= gameScreen.height - (ball.scale.radius)){
+        if(ball.location.y <= 0+(ball.scale.radius) || ball.location.y >= Engine.gameScreen.height - (ball.scale.radius)){
             if(colSwitch==false){
                 if(!muted.is){
                     /*
@@ -448,7 +445,7 @@ game.mainLoopFunctions.push(function(){
                     */
                 }
                 colSwitch = true;
-                ball.velocity.y = ball.location.y >= gameScreen.height - (ball.scale.radius) ? -1 : 1;
+                ball.velocity.y = ball.location.y >= Engine.gameScreen.height - (ball.scale.radius) ? -1 : 1;
             }
         }else{
             colSwitch = false;
@@ -461,11 +458,11 @@ document.addEventListener("keyup", function(e){
         if(game.running){
             pauseIcon.hidden = false;
             pauseIcon.draw();
-            gameScreen.documentObject.style.cursor = "default";
+            Engine.gameScreen.documentObject.style.cursor = "default";
         }else{
             pauseIcon.hidden = true;
             pauseIcon.draw();
-            gameScreen.documentObject.style.cursor = "none";
+            Engine.gameScreen.documentObject.style.cursor = "none";
         }
     }
     if(e.code=="KeyM"){

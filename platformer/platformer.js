@@ -1,9 +1,11 @@
+// @ts-ignore
 "use strict";
-gameScreen.resize(viewport.width - 10, viewport.height - 10);
+import * as Engine from '../index';
+Engine.gameScreen.resize(Engine.viewport.width - 10, Engine.viewport.height - 10);
 // @ts-ignore
-const game = new Game("Jumpy Jump Autistic", { refreshType: 0, fps: 60 });
+const game = new Game("Jumpy Jump Autistic", { vsync: true, fps: 60 });
 // @ts-ignore
-const player = game.addSprite(new Sprite({
+const player = game.addSprite(new Engine.Sprite({
     info: {
         name: "player",
         type: "image",
@@ -24,8 +26,8 @@ const player = game.addSprite(new Sprite({
         }
     },
     location: {
-        x: (gameScreen.width * 0.5),
-        y: (gameScreen.height * 0.5)
+        x: (Engine.gameScreen.width * 0.5),
+        y: (Engine.gameScreen.height * 0.5)
     },
     scale: {
         width: "default",
@@ -53,7 +55,7 @@ const player = game.addSprite(new Sprite({
     }
 ]));
 let playerMovementData = player.getProperty("movementData");
-class Floor extends Sprite {
+class Floor extends Engine.Sprite {
     constructor(options) {
         var _a, _b;
         let colour = {
@@ -70,7 +72,7 @@ class Floor extends Sprite {
         super(options);
     }
 }
-class Coin extends Sprite {
+class Coin extends Engine.Sprite {
     constructor(options) {
         var _a, _b;
         let name = (_b = (_a = options === null || options === void 0 ? void 0 : options.info) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : "floor";
@@ -94,7 +96,7 @@ class Coin extends Sprite {
     }
 }
 let collectedCoins = 0;
-const textTest = new Sprite({
+const textTest = new Engine.Sprite({
     info: {
         name: "text",
         type: "text",
@@ -109,8 +111,8 @@ const textTest = new Sprite({
         }
     },
     location: {
-        x: (gameScreen.width * 0.5) - 30,
-        y: (gameScreen.height * 0.8),
+        x: (Engine.gameScreen.width * 0.5) - 30,
+        y: (Engine.gameScreen.height * 0.8),
         z: -1
     },
     scale: {
@@ -118,7 +120,7 @@ const textTest = new Sprite({
         height: 25
     }
 });
-const collectedCoinsText = new Sprite({
+const collectedCoinsText = new Engine.Sprite({
     info: {
         name: "text",
         type: "text",
@@ -133,8 +135,8 @@ const collectedCoinsText = new Sprite({
         }
     },
     location: {
-        x: gameScreen.width * 0.05 < 30 ? 30 : gameScreen.width * 0.05,
-        y: gameScreen.height * 0.05 < 60 ? 60 : gameScreen.height * 0.05,
+        x: Engine.gameScreen.width * 0.05 < 30 ? 30 : Engine.gameScreen.width * 0.05,
+        y: Engine.gameScreen.height * 0.05 < 60 ? 60 : Engine.gameScreen.height * 0.05,
         z: 2,
         static: true
     },
@@ -146,18 +148,18 @@ const collectedCoinsText = new Sprite({
 game.addSprites(textTest, collectedCoinsText);
 let coins = game.addSprites(new Coin({
     location: {
-        x: gameScreen.width - 100,
-        y: (gameScreen.height - 30) - 60
+        x: Engine.gameScreen.width - 100,
+        y: (Engine.gameScreen.height - 30) - 60
     }
 }), new Coin({
     location: {
-        x: gameScreen.width - 150,
-        y: (gameScreen.height - 30) - 60
+        x: Engine.gameScreen.width - 150,
+        y: (Engine.gameScreen.height - 30) - 60
     }
 }), new Coin({
     location: {
-        x: gameScreen.width - 200,
-        y: (gameScreen.height - 30) - 60
+        x: Engine.gameScreen.width - 200,
+        y: (Engine.gameScreen.height - 30) - 60
     }
 }));
 let roomWidth = 1;
@@ -168,11 +170,11 @@ let terrain = game.addSprites(new Floor({
     },
     location: {
         x: 0,
-        y: (gameScreen.height - 40),
+        y: (Engine.gameScreen.height - 40),
         z: -1
     },
     scale: {
-        width: gameScreen.width * roomWidth,
+        width: Engine.gameScreen.width * roomWidth,
         height: 40
     }
 }), new Floor({
@@ -185,7 +187,7 @@ let terrain = game.addSprites(new Floor({
         z: -1
     },
     scale: {
-        width: gameScreen.width * roomWidth,
+        width: Engine.gameScreen.width * roomWidth,
         height: 40
     }
 }), new Floor({
@@ -199,20 +201,20 @@ let terrain = game.addSprites(new Floor({
     },
     scale: {
         width: 40,
-        height: gameScreen.height - roofPos
+        height: Engine.gameScreen.height - roofPos
     }
 }), new Floor({
     info: {
         name: "right wall"
     },
     location: {
-        x: (gameScreen.width * roomWidth),
+        x: (Engine.gameScreen.width * roomWidth),
         y: roofPos,
         z: -1
     },
     scale: {
         width: 40,
-        height: gameScreen.height - roofPos
+        height: Engine.gameScreen.height - roofPos
     }
 }), new Floor({
     info: {
@@ -225,19 +227,19 @@ let terrain = game.addSprites(new Floor({
     },
     scale: {
         width: 25,
-        height: gameScreen.height - roofPos - 450
+        height: Engine.gameScreen.height - roofPos - 450
     }
 }));
 let stopAt = 0.05;
 game.resortByZIndex();
 document.body.style.backgroundColor = "black";
-gameScreen.background = "black";
+Engine.gameScreen.background = "black";
 let isCollidingWithTerrain = false;
 let direction = { x: 0, y: 0 };
 let collisionSide = "";
 let cameraDrag = 0.9;
 const spawnPos = {
-    x: gameScreen.width / 2,
+    x: Engine.gameScreen.width / 2,
     y: terrain[0].location.y - player.scale.height - 5
 };
 function respawnPlayer() {
@@ -245,7 +247,7 @@ function respawnPlayer() {
     player.location.y = spawnPos.y;
 }
 respawnPlayer();
-game.camera.location.y = gameScreen.height / 2;
+game.camera.location.y = Engine.gameScreen.height / 2;
 game.mainLoopFunctions.push(function () {
     let delta = game.timeData.delta;
     let slowSpeed = 1;
@@ -323,7 +325,7 @@ game.mainLoopFunctions.push(function () {
         collisionSide = "";
     }
     if (currentlyColliding.y == false) {
-        if (player.location.y + player.scale.height + ((playerMovementData.fallSpeed * player.velocity.y) * delta) < gameScreen.height) {
+        if (player.location.y + player.scale.height + ((playerMovementData.fallSpeed * player.velocity.y) * delta) < Engine.gameScreen.height) {
             player.velocity.y += player.velocity.y < 1.5 ? delta : 0;
         }
         else {
@@ -398,7 +400,7 @@ game.mainLoopFunctions.push(function () {
 }, function () {
     let destination = {
         x: -player.location.x + (game.camera.scale.width) - (player.scale.width / 2),
-        y: (gameScreen.height) - (player.location.y * 0.9)
+        y: (Engine.gameScreen.height) - (player.location.y * 0.9)
     };
     let diff = {
         x: destination.x - game.camera.location.x,
