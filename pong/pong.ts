@@ -1,7 +1,7 @@
 "use strict";
 
-import * as Engine from '../index';
-import * as Cake from '../GameEngineInterfaces';
+import * as Engine from '../engine.js';
+import * as Cake from '../GameEngineInterfaces.js';
 
 let minScreenSize = Math.min(Engine.viewport.width,Engine.viewport.height);
 let maxScreenSize = Math.max(Engine.viewport.width,Engine.viewport.height);
@@ -22,7 +22,7 @@ screenSize = {
 }
 Engine.gameScreen.resize(screenSize.x,screenSize.y);
 // @ts-ignore
-const game = new Game("Pong", ()=>{
+const game = new Engine.Game("Pong", ()=>{
     console.log("game started");
 });
 let paddleSize = {
@@ -219,9 +219,18 @@ ball.velocity = {
 }
 let colSwitch = false;
 game.loadSettings();
-let score = game.getSetting("Score");
-let muted = game.getSetting("Muted");
-let mode = game.getSetting("Mode");
+let score = <{
+    [key: string]: any;
+    name: string;
+}>game.getSetting("Score");
+let muted = <{
+    [key: string]: any;
+    name: string;
+}>game.getSetting("Muted");
+let mode = <{
+    [key: string]: any;
+    name: string;
+}>game.getSetting("Mode");
 let maxBallSpeed = ball.customProperties[0];
 if(typeof score !== 'object'){
     score = game.addSetting("Score",{
@@ -240,17 +249,19 @@ mode.players = 1;
 score.wins = 0;
 score.losses = 0;
 function setScore(){
-    document.querySelector("#score")!.textContent = score.wins;
-    document.querySelector("#highScore")!.textContent = score.highScore;
-    document.querySelector("#losses")!.textContent = score.losses;
-    let wlratio = 1*(score.wins/score.losses);
-    if(wlratio==Infinity){
-        wlratio = 1;
-    }if(isNaN(wlratio)){
-        wlratio = 0;
+    if(score){
+        document.querySelector("#score")!.textContent = score.wins;
+        document.querySelector("#highScore")!.textContent = score.highScore;
+        document.querySelector("#losses")!.textContent = score.losses;
+        let wlratio = 1*(score.wins/score.losses);
+        if(wlratio==Infinity){
+            wlratio = 1;
+        }if(isNaN(wlratio)){
+            wlratio = 0;
+        }
+        wlratio = Math.round(wlratio*100)/100;
+        document.querySelector("#wlratio")!.textContent = wlratio.toString();
     }
-    wlratio = Math.round(wlratio*100)/100;
-    document.querySelector("#wlratio")!.textContent = wlratio.toString();
 }
 setScore();
 if(typeof muted !== 'object'){

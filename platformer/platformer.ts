@@ -1,12 +1,12 @@
 // @ts-ignore
 "use strict";
 
-import * as Engine from '../index';
-import * as Cake from '../GameEngineInterfaces';
+import * as Engine from '../engine.js';
+import * as Cake from '../GameEngineInterfaces.js';
 
 Engine.gameScreen.resize(Engine.viewport.width-10,Engine.viewport.height-10);
 // @ts-ignore
-const game = new Game("Jumpy Jump Autistic",{vsync:true,fps:60});
+const game = new Engine.Game("Jumpy Jump Autistic",{vsync:true,fps:60});
 // @ts-ignore
 const player = game.addSprite(new Engine.Sprite(
     {  

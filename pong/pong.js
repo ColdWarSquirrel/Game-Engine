@@ -1,5 +1,5 @@
 "use strict";
-import * as Engine from '../index';
+import * as Engine from '../engine.js';
 let minScreenSize = Math.min(Engine.viewport.width, Engine.viewport.height);
 let maxScreenSize = Math.max(Engine.viewport.width, Engine.viewport.height);
 let screenSize = {
@@ -20,7 +20,7 @@ screenSize = {
 };
 Engine.gameScreen.resize(screenSize.x, screenSize.y);
 // @ts-ignore
-const game = new Game("Pong", () => {
+const game = new Engine.Game("Pong", () => {
     console.log("game started");
 });
 let paddleSize = {
@@ -237,18 +237,20 @@ mode.players = 1;
 score.wins = 0;
 score.losses = 0;
 function setScore() {
-    document.querySelector("#score").textContent = score.wins;
-    document.querySelector("#highScore").textContent = score.highScore;
-    document.querySelector("#losses").textContent = score.losses;
-    let wlratio = 1 * (score.wins / score.losses);
-    if (wlratio == Infinity) {
-        wlratio = 1;
+    if (score) {
+        document.querySelector("#score").textContent = score.wins;
+        document.querySelector("#highScore").textContent = score.highScore;
+        document.querySelector("#losses").textContent = score.losses;
+        let wlratio = 1 * (score.wins / score.losses);
+        if (wlratio == Infinity) {
+            wlratio = 1;
+        }
+        if (isNaN(wlratio)) {
+            wlratio = 0;
+        }
+        wlratio = Math.round(wlratio * 100) / 100;
+        document.querySelector("#wlratio").textContent = wlratio.toString();
     }
-    if (isNaN(wlratio)) {
-        wlratio = 0;
-    }
-    wlratio = Math.round(wlratio * 100) / 100;
-    document.querySelector("#wlratio").textContent = wlratio.toString();
 }
 setScore();
 if (typeof muted !== 'object') {
