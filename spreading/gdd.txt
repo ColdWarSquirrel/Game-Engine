@@ -1,8 +1,6 @@
 GAME DESIGN DOCUMENT FOR A GAME ABOUT SOMETHING ABOUT SPREADING!!!
 
+idea: a person inhales their grandmas ashes by accident and they get an infection, and the bacteria you play as looks like their zombie grandma
 
-basic ideas:
-- zombie game, but you are the zombie
-- you play as a virus infecting a guy's body
-- your grandma died and you're tasked with spreading the ashes
-- a person inhales their grandmas ashes by accident and they get an infection, and the bacteria you play as looks like their zombie grandma
+at the beginning of the game it looks like the game is about spreading ashes, but you trip and inhale the ashes and you have to kill this guy 
+as the ashes of his dead grandma, with each level being its own organ, and the mario tunnel equivilent would be the bloodstream
