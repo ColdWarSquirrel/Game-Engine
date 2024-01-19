@@ -15,21 +15,14 @@ it's pretty simple, take a look at the source code [here](https://github.com/Mat
 so far using this I have made [pong](pong/) and a (very basic) [platformer type thing](platformer/)  
 god knows how long I'm going to keep these going
 
-[](#docs)
 
 [Docs](#docs)
 =============
 
 * * *
 
-[
-
-Game Screen (`gameScreen: GameScreen`)
+[Game Screen (`gameScreen: GameScreen`)](#game-screen)
 --------------------------------------
-
-
-
-](#game-screen)
 
 so after some tinkering I decided (probably rather stupidly) that there should just be a global `GameScreen` variable that the developer can resize, named (usefully) `gameScreen`.  
   
@@ -44,11 +37,8 @@ so after some tinkering I decided (probably rather stupidly) that there should j
 `fullscreen: boolean`: if the game screen fills the innerWidth and innerHeight of the screen, not if the screen is actually in "fullscreen"  
   
 default size: 700x700 pixels  
-[
 
-### Functions
-
-](#game-screen-functions)
+### [Functions](#game-screen-functions)
 
 ### `.clear(): void`
 
@@ -84,14 +74,9 @@ makes the width and height of the variable and canvas the same size as the viewp
 
 * * *
 
-[
-
-Game (`<Game>`)
+[Game (`<Game>`)](#game)
 ---------------
 
-
-
-](#game)
 
 a global `Game` class, only to be used once to intialise a game instance  
   
@@ -110,11 +95,9 @@ a global `Game` class, only to be used once to intialise a game instance
 `.vsync: boolean`: whether to use vsync or not, if true, calls requestAnimationFrame, else it calls setInterval  
 `.fps: number`: if vsync is set to false, then this value will be the target fps: `1/this.fps`  
   
-[
 
-### Functions
+### [Functions](#game-functions)
 
-](#game-functions)
 
 ### `.mainGameLoop(): void`
 
